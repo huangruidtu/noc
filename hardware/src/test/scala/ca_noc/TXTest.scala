@@ -19,15 +19,8 @@ class TXTest(dut : TX) extends PeekPokeTester(dut) {
 }
 
 
-//object Tester extends App {
-//  chisel3.iotesters.Driver(() => new TX()) {c => new TXTest(c)}
-//}
-object TXTest {
-  def main(args: Array[String]): Unit = {
-    chiselMainTest(Array("--genHarness", "--test", "--backend", "c",
-      "--compile", "--vcd", "--targetDir", "generated"),
-      () => Module(new TX(depth = 3))) {
+object TXTest extends App {
+      chisel3.iotesters.Driver(() => new TX(depth = 3)) {
       m => new TXTest(m)
     }
-  }
 }
