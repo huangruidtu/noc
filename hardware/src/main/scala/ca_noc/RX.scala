@@ -28,9 +28,10 @@ class fifoblock(width:Int) extends Module{
   val stateReg = RegInit(empty)
   val dataReg = RegInit(0.U(width.W))
   val datamux = Wire(UInt())
-  when(io.fifoOUT.read){
-    datamux := dataReg
-  }
+//  when(io.fifoOUT.read){
+//    datamux := dataReg
+//  }
+  datamux := dataReg
   io.fifoIN.full := ( stateReg === full)
   io.fifoOUT. empty := ( stateReg === empty)
   //io.fifoOUT.dout := dataReg
@@ -59,9 +60,12 @@ class fifoblock(width:Int) extends Module{
 class RX(/*width: Int,*/depth: Int) extends Module {
   val width = 35
   val io = IO(new Bundle{
-      val rxIn = new WriterIo(width-3)
+      val rxIn = new WriterIo(width)
       val rxOut = new ReadIo(width-3)
       })
+
+  val data_extract = RegInit(0.U(32.W))
+  data_extract := io.rxIn.din(31,0)
 
   val buffer = Array.fill(depth){
     Module(new fifoblock(width-3))
@@ -71,6 +75,8 @@ class RX(/*width: Int,*/depth: Int) extends Module {
     buffer (i + 1).io.fifoIN.write := buffer (i).io.fifoOUT.empty
     buffer (i).io.fifoOUT.read := buffer (i + 1).io.fifoIN.full
   }
-  io.rxIn.din(width-4,0) <> buffer(0).io.fifoIN.din
+
+  buffer(0).io.fifoIN.din := data_extract
+  //io.rxIn.din(width-4,0) <> buffer(0).io.fifoIN.din
   io.rxOut.dout <> buffer(depth-1).io.fifoOUT.dout
 }
