@@ -54,6 +54,7 @@ class TX(/*width:Int,*/depth:Int) extends Module {
   io.txOut.empty <> (buffer(depth-1).io.fifoOUT.empty /*& dataready2router*/)
   io.txOut.read <> buffer(depth-1).io.fifoOUT.read
 }
+
 //val data_in = Input(UInt(96.W))
 //val TXAck = Output(Bool())
 //val ReqfromOcp = Input(Bool())
