@@ -1,8 +1,8 @@
 package TX
 import Chisel.Enum
 import chisel3._
-import chisel3.util.{is, switch}
-import RX.{WriterIo,ReadIo,fifoblock}
+import chisel3.util.{Cat, is, switch}
+import RX.{ReadIo, WriterIo, fifoblock}
 
 class TX(/*width:Int,*/depth:Int) extends Module {
   val width = 35
@@ -10,8 +10,7 @@ class TX(/*width:Int,*/depth:Int) extends Module {
       val txIn = new RX.WriterIo(width-3)
       val txOut = new RX.ReadIo(width)
   })
-
-  val slotnumber = Int
+//----------- Build fifoblocks
   val buffer: Array[fifoblock] = Array.fill(depth){
     Module(new fifoblock(width))
   }
@@ -20,19 +19,39 @@ class TX(/*width:Int,*/depth:Int) extends Module {
     buffer (i + 1).io.fifoIN.write := buffer (i).io.fifoOUT.empty
     buffer (i).io.fifoOUT.read := buffer (i + 1).io.fifoIN.full
   }
-  buffer(0).io.fifoOUT.dout := 5.U + buffer(0).io.fifoIN.din  //101
-  buffer(depth-1).io.fifoOUT.dout := 6.U + buffer(depth).io.fifoIN.din //110
-  for(i <- 1 until depth-2){
-    buffer (i).io.fifoOUT.dout := 4.U + buffer(i).io.fifoIN.din //100
+  //---------------END BUILD-------------------------------------------
+  //---------------Start to add phit type------------------------------
+  val cnt: UInt = Wire(UInt())
+  val result: UInt = Wire(UInt())
+  cnt := 0.U
+  result := "b000".U
+  when(buffer(depth-1).io.fifoOUT.empty === true.B){
+      cnt := cnt + 1.U
   }
-
-  val dataready2router: Bool = Wire(false.B)
-  when(buffer(depth-1).io.fifoIN.full){
-    dataready2router := true.B
+  //Counting from the beginning, 3 data form a complete format/package
+  when(cnt === 3.U){
+    cnt := 0.U
   }
+  when(cnt === 1.U){
+    result := "b110".U
+  }.elsewhen(cnt === depth.U){
+    result := "b101".U
+  }.otherwise{
+    result := "b100".U
+  }
+/*----------------End----------Merge the result with data from fifo out
+            VLD SOP EOP + 32 Bits data | 16bits addr + 16 bits route
+ */
+  val merge: UInt = Wire(UInt())
+  merge := Cat(result,buffer(depth-1).io.fifoOUT.dout)
+//----------------Wait until 3 fifoblocks are filled
+//  val dataready2router: Bool = Wire(false.B)
+//  when(buffer(depth-1).io.fifoIN.full){
+//    dataready2router := true.B
+//  }
   io.txIn <> buffer(0).io.fifoIN
-  io.txOut.dout <> buffer(depth-1).io.fifoOUT.dout
-  io.txOut.empty <> (buffer(depth-1).io.fifoOUT.empty & dataready2router)
+  io.txOut.dout <> merge /*buffer(depth-1).io.fifoOUT.dout*/
+  io.txOut.empty <> (buffer(depth-1).io.fifoOUT.empty /*& dataready2router*/)
   io.txOut.read <> buffer(depth-1).io.fifoOUT.read
 }
 //val data_in = Input(UInt(96.W))
