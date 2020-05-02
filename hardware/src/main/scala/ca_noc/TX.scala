@@ -10,6 +10,7 @@ class TX(/*width:Int,*/depth:Int) extends Module {
       val txIn = new RX.WriterIo(width-3)
       val txOut = new RX.ReadIo(width)
   })
+
 //----------- Build fifoblocks
   val buffer: Array[fifoblock] = Array.fill(depth){
     Module(new fifoblock(width))
@@ -49,10 +50,12 @@ class TX(/*width:Int,*/depth:Int) extends Module {
 //  when(buffer(depth-1).io.fifoIN.full){
 //    dataready2router := true.B
 //  }
+  
   io.txIn <> buffer(0).io.fifoIN
-  io.txOut.dout <> merge /*buffer(depth-1).io.fifoOUT.dout*/
-  io.txOut.empty <> (buffer(depth-1).io.fifoOUT.empty /*& dataready2router*/)
-  io.txOut.read <> buffer(depth-1).io.fifoOUT.read
+  //io.txOut.dout <> merge /*buffer(depth-1).io.fifoOUT.dout*/
+  //io.txOut.empty <> (buffer(depth-1).io.fifoOUT.empty /*& dataready2router*/)
+  //io.txOut.read <> buffer(depth-1).io.fifoOUT.read
+  io.txOut <> DontCare
 }
 
 //val data_in = Input(UInt(96.W))

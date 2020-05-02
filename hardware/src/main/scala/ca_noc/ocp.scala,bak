@@ -1,4 +1,4 @@
-package noc.ocp
+package ocp
 
 import io._
 import ocp._
