@@ -16,12 +16,12 @@ class TX(/*width:Int,*/depth:Int) extends Module {
   }
   for (i <- 0 until depth-1){
     buffer (i + 1).io.fifoIN.din := buffer (i).io.fifoOUT.dout
-    buffer (i + 1).io.fifoIN.write := buffer (i).io.fifoOUT.empty
-    buffer (i).io.fifoOUT.read := buffer (i + 1).io.fifoIN.full
+    buffer (i + 1).io.fifoIN.write := ~buffer (i).io.fifoOUT.empty
+    buffer (i).io.fifoOUT.read := ~buffer (i + 1).io.fifoIN.full
   }
   //---------------END BUILD-------------------------------------------
   //---------------Start to add phit type------------------------------
-  val cnt: UInt = Wire(UInt())
+  val cnt: UInt = Reg(UInt())
   val result: UInt = Wire(UInt())
   cnt := 0.U
   result := "b000".U
@@ -49,11 +49,12 @@ class TX(/*width:Int,*/depth:Int) extends Module {
 //  when(buffer(depth-1).io.fifoIN.full){
 //    dataready2router := true.B
 //  }
-  val read = WireInit(false.B)
-  read := buffer(depth-1).io.fifoOUT.read
+
   io.txIn <> buffer(0).io.fifoIN
   io.txOut.dout := merge /*buffer(depth-1).io.fifoOUT.dout*/
   io.txOut.empty := (buffer(depth-1).io.fifoOUT.empty /*& dataready2router*/)
   //io.txOut.read := buffer(depth-1).io.fifoOUT.read
-  io.txOut.read := read
+  val read = WireInit(false.B)
+  read := io.txOut.read
+  buffer(depth-1).io.fifoOUT.read := read
 }

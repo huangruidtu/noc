@@ -64,7 +64,7 @@ class RX(/*width: Int,*/depth: Int) extends Module {
       val rxOut = new ReadIo(width-3)
       })
 
-  val data_extract = RegInit(0.U(32.W))
+  val data_extract = WireInit(0.U(32.W))
   data_extract := io.rxIn.din(31,0)
 
   val buffer = Array.fill(depth){
@@ -72,11 +72,13 @@ class RX(/*width: Int,*/depth: Int) extends Module {
   }
   for (i <- 0 until depth-1){
     buffer (i + 1).io.fifoIN.din := buffer (i).io.fifoOUT.dout
-    buffer (i + 1).io.fifoIN.write := buffer (i).io.fifoOUT.empty
-    buffer (i).io.fifoOUT.read := buffer (i + 1).io.fifoIN.full
+    buffer (i + 1).io.fifoIN.write := ~buffer (i).io.fifoOUT.empty
+    buffer (i).io.fifoOUT.read := ~buffer (i + 1).io.fifoIN.full
   }
 
   buffer(0).io.fifoIN.din := data_extract
+  io.rxIn.full := buffer(0).io.fifoIN.full
+  buffer(0).io.fifoIN.write := io.rxIn.write
   //io.rxIn.din(width-4,0) <> buffer(0).io.fifoIN.din
-  io.rxOut.dout <> buffer(depth-1).io.fifoOUT.dout
+  io.rxOut <> buffer(depth-1).io.fifoOUT
 }
