@@ -28,36 +28,33 @@ class OcpInterface() extends Module {
 
         when (stateReg === idle){
             when(coreReg.Cmd === OcpCmd.RD){
-stateReg := sendAddr
-              rdAddrReg := coreReg.Addr(15, 0)
+                stateReg := sendAddr
+                rdAddrReg := coreReg.Addr(15, 0)
 
             }.elsewhen(coreReg.Cmd === OcpCmd.WR){
-stateReg := writeData
-              rdAddrReg := coreReg.Addr(15, 0)
-              dataOutReg := coreReg.Data
+                stateReg := writeData
+                rdAddrReg := coreReg.Addr(15, 0)
+                dataOutReg := coreReg.Data
 
             }.otherwise{
-coreReg := io.CorePort.M
-
+                coreReg := io.CorePort.M
             }
 
-        }
-    when(stateReg === sendAddr){
-stateReg := readData
+        }.elsewhen(stateReg === sendAddr){
+        stateReg := readData
 
-    }
-    when(stateReg === readData){
+    }.elsewhen(stateReg === readData){
         io.CorePort.S.Resp := OcpResp.DVA
-            coreReg := io.CorePort.M
-            stateReg := idle
+        coreReg := io.CorePort.M
+        stateReg := idle
 
-    }
-    when(stateReg === writeData){
+    }.elsewhen(stateReg === writeData){
         io.CorePort.S.Resp := OcpResp.DVA
-     io.OcpOut.empty := false.B
-            coreReg := io.CorePort.M
-            stateReg := idle
+        io.OcpOut.empty := false.B
+        coreReg := io.CorePort.M
+        stateReg := idle
 
+    }.otherwise{
+        //do nothing
     }
-
 }
