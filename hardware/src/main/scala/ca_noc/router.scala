@@ -56,7 +56,7 @@ class router(size:Int) extends Module{
 
 
   //--------------Cross Bar--------------------
-  val idle :: parsing :: out :: Nil = Enum(4)
+  val idle :: dataIn :: parsing :: dataOut :: Nil = Enum(4)
   val stateReg = RegInit(idle)
   val write = Input(Bool())
   val xBar_in = RegInit(0.U(size.W))
@@ -66,8 +66,8 @@ class router(size:Int) extends Module{
 
   when( stateReg === idle ){
     when(write)
-        stateReg := in
-  }.elsewhen( stateReg === in ) {
+        stateReg := dataIn
+  }.elsewhen( stateReg === dataIn ) {
       when(io.router_in_E.write) {
         xBar_in := io.router_in_E.din
       }.elsewhen(io.router_in_S.write) {
@@ -90,8 +90,8 @@ class router(size:Int) extends Module{
             routeReg := routeReg>>4.U
             data_after_mux := Cat(data_in(size-1,16),routeReg)
         }
-        stateReg := out
-  }.elsewhen (stateReg === out) {
+        stateReg := dataOut
+  }.elsewhen (stateReg === dataOut) {
       when(dest === "b0001".U){ //East Port
           io.router_out_E.empty := false.B
           io.router_out_E.dout := data_after_mux
