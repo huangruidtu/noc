@@ -3,25 +3,24 @@ import chisel3._
 import chisel3.util.{Cat, is, switch}
 import RX._
 import TX._
-import OCP_INF._
-import ocp.OcpCoreBus
-class NetworkInterface(ADDR_WIDTH:Int,DATA_WIDTH:Int,depth:Int,size:Int) extends Module{
+
+class NetworkInterface(depth:Int,size:Int) extends Module{
   val io = IO(new Bundle{
     val NI2Ocp_In = new RX.WriterIo(size)
-    val NI2Ocp_Out = new RX.ReadIo((size))
-    val NI2Router_Out = new RX.WriterIo(size)
-    val NI2Router_In = new RX.ReadIo(size)
+    val NI2Ocp_Out = new RX.ReadIo((size+3))
+    val NI2Router_Out = new RX.ReadIo(size+3)
+    val NI2Router_In = new RX.WriterIo(size)
     val addr = Input(UInt(16.W))
   })
-  val Tx = new TX.TX(depth)
-  val Rx = new RX.RX(depth)
-  val route = Wire(0.U(16.W))
-  val Routetable = new route
-  val header = Wire(0.U(32.W))
+  val Tx = Module(new TX(depth))
+  val Rx = Module(new RX(depth))
+  val route = WireInit(0.U(16.W))
+  val Routetable = Module(new route)
+  val header = WireInit(0.U(32.W))
 
   header := Cat(io.addr,route)
 
-  val cnt = WireInit(0.U)
+  val cnt = RegInit(0.U)
   when(io.NI2Ocp_In.write){
     when(cnt =/= 3.U){
       cnt := cnt + 1.U
@@ -46,11 +45,11 @@ class NetworkInterface(ADDR_WIDTH:Int,DATA_WIDTH:Int,depth:Int,size:Int) extends
 
 class route extends Module{
   val io = IO(new Bundle{
-    val route = Output(0.U(16.W))
+    val route = Output(UInt(16.W))
     val en = Input(Bool())
   })
-  val route = Wire(0.U(16.W))
-  val cnt = WireInit(0.U)
+  val route = WireInit(0.U(16.W))
+  val cnt = RegInit(0.U)
   io.route := route
   when(io.en){
     cnt := cnt + 1.U
@@ -59,14 +58,14 @@ class route extends Module{
     cnt := 0.U
   }
   when(cnt === 1.U){
-    route := "0x0001".U
+    route := 0x0001.U
   }.elsewhen(cnt === 2.U){
-    route := "0x0002".U
+    route := 0x0002.U
   }.elsewhen(cnt === 3.U){
-    route := "0x0004".U
+    route := 0x0004.U
   }.elsewhen(cnt === 4.U){
-    route := "0x0008".U
+    route := 0x0008.U
   }.elsewhen(cnt === 5.U){
-    route := "0x0011".U
+    route := 0x0011.U
   }
 }
