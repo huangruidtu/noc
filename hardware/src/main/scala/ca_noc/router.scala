@@ -87,24 +87,23 @@ class router(size:Int) extends Module{
         stateReg := out
   }.elsewhen (stateReg === out) {
       when(dest === "b0001".U){ //East Port
+          io.router_out_E.read := true.B
           io.router_out_E.dout := data_after_mux
       }.elsewhen(dest === "b0010".U){ //South Port
+          io.router_out_S.read := true.B
           io.router_out_S.dout := data_after_mux
       }.elsewhen(dest === "b0100".U){ // West Port
+          io.router_out_W.read := true.B
           io.router_out_W.dout := data_after_mux
       }.elsewhen(dest === "b1000".U){ // North Port
+          io.router_out_N.read := true.B
           io.router_out_N.dout := data_after_mux
       }.elsewhen(dest === "b0000".U){ // Local Port
+          io.router_out_L.read := true.B
           io.router_out_L.dout := data_after_mux
       }.otherwise{
           // do nothing
       }
       stateReg := idle
   }
-
-
-
-  
-
-
 }
