@@ -3,6 +3,7 @@ import chisel3._
 import RX.{ReadIo, WriterIo}
 import chisel3.util.Cat
 import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
+import chisel3.util.{switch, is}
 
 class router(size:Int) extends Module{
   val io = IO(new Bundle{
@@ -104,33 +105,54 @@ class HPU(size : Int) extends Module{
 
 class XBar(size : Int) extends Module{
     val io = IO(new Bundle{
-        val xbar_sele = Input(UInt(4.W))
-        val xbar_data_in = Input(UInt(size.W))
-        val xbar_data_out_N = Output(UInt(size.W))
-        val xbar_data_out_S = Output(UInt(size.W))
-        val xbar_data_out_E = Output(UInt(size.W))
-        val xbar_data_out_W = Output(UInt(size.W))
-        val xbar_data_out_L = Output(UInt(size.W))
+            val xbar_sele = Input(UInt(4.W))
+            val xbar_data_in = Input(UInt(size.W))
+            val xbar_data_out_N = Output(UInt(size.W))
+            val xbar_data_out_S = Output(UInt(size.W))
+            val xbar_data_out_E = Output(UInt(size.W))
+            val xbar_data_out_W = Output(UInt(size.W))
+            val xbar_data_out_L = Output(UInt(size.W))
 
-    })
+            })
     val seleReg = RegInit(0.U(4.W))
-    val dataReg = RegInit(0.U(size.W))
-    dataReg := io.xbar_data_in
-    seleReg := io.xbar_sele
-    when(seleReg === "b0001".U){
-        io.xbar_data_out_N :=  dataReg
-    }.elsewhen(seleReg === "b0010".U){
-        io.xbar_data_out_S :=  dataReg
-    }.elsewhen(seleReg === "b0100".U){
-        io.xbar_data_out_W :=  dataReg
-    }.elsewhen(seleReg === "b1000".U){
-        io.xbar_data_out_E :=  dataReg
-    }.elsewhen(seleReg === "b0000".U){
-        io.xbar_data_out_L :=  dataReg
-    }}
+        val dataReg = RegInit(0.U(size.W))
+        dataReg := io.xbar_data_in
+        //seleReg := io.xbar_sele
+        //    when(seleReg === "b0001".U){
+        //        io.xbar_data_out_N :=  dataReg
+        //    }.elsewhen(seleReg === "b0010".U){
+        //        io.xbar_data_out_S :=  dataReg
+        //    }.elsewhen(seleReg === "b0100".U){
+        //        io.xbar_data_out_W :=  dataReg
+        //    }.elsewhen(seleReg === "b1000".U){
+        //        io.xbar_data_out_E :=  dataReg
+        //    }.elsewhen(seleReg === "b0000".U){
+        //        io.xbar_data_out_L :=  dataReg
+        //    }
+
+        switch(seleReg){
+            is("b0001".U) {
+                io.xbar_data_out_N :=  dataReg
+            }
+            is("b0010".U) {
+                io.xbar_data_out_S :=  dataReg
+            }
+            is("b0100".U) {
+                io.xbar_data_out_W :=  dataReg
+            }
+            is("b1000".U) {
+                io.xbar_data_out_E :=  dataReg
+            }
+            is("b0000".U) {
+                io.xbar_data_out_L :=  dataReg
+            }
+        }
+
+
+}
 
 class RouterTest(dut : router) extends PeekPokeTester(dut) {
-  //poke(dut.io.txIn.write, true.B)
+  poke(dut.io.router_in_L.din, 0x01)
   //poke(dut.io.txIn.din, 1)
   //step(1)
   //println(peek(dut.io.txOut.dout).toString())
