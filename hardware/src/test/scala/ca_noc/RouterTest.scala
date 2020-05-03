@@ -1,9 +1,8 @@
 package router
 import chisel3._
 import RX.{ReadIo, WriterIo}
-import chisel3.util.Cat
+import chisel3.util.{Cat, Enum, is, switch}
 import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
-import chisel3.util.{switch, is}
 
 class router(size:Int) extends Module{
   val io = IO(new Bundle{
@@ -18,17 +17,24 @@ class router(size:Int) extends Module{
     val router_in_L = new WriterIo(size)
     val router_out_L = new ReadIo(size)
   })
+  val empty :: full :: Nil = Enum(2)
+  val stateReg = RegInit(empty)
+  val dataReg_N = RegInit(0.U(size.W))
+  val dataReg_E = RegInit(0.U(size.W))
+  val dataReg_S = RegInit(0.U(size.W))
+  val dataReg_W = RegInit(0.U(size.W))
+  val dataReg_L = RegInit(0.U(size.W))
   //--------------HPU-------------------------
   val HPU_N = Module(new HPU(size))
-  HPU_N.io.data_in := io.router_in_N.din
+  HPU_N.io.data_in := dataReg_N
   val HPU_S = Module(new HPU(size))
-  HPU_S.io.data_in := io.router_in_S.din
+  HPU_S.io.data_in := dataReg_S
   val HPU_W = Module(new HPU(size))
-  HPU_W.io.data_in := io.router_in_W.din
+  HPU_W.io.data_in := dataReg_W
   val HPU_E = Module(new HPU(size))
-  HPU_E.io.data_in := io.router_in_E.din
+  HPU_E.io.data_in := dataReg_E
   val HPU_L = Module(new HPU(size))
-  HPU_L.io.data_in := io.router_in_L.din
+  HPU_L.io.data_in := dataReg_L
   //--------------Cross Bar--------------------
   val XBar_N = Module(new XBar(size))
   XBar_N.io.xbar_sele := HPU_N.io.sele
@@ -38,7 +44,7 @@ class router(size:Int) extends Module{
   io.router_out_E.dout := XBar_N.io.xbar_data_out_E
   io.router_out_W.dout := XBar_N.io.xbar_data_out_W
   io.router_out_L.dout := XBar_N.io.xbar_data_out_L
-  
+
   val XBar_S = Module(new XBar(size))
   XBar_S.io.xbar_sele := HPU_S.io.sele
   XBar_S.io.xbar_data_in := HPU_S.io.data_out
@@ -47,7 +53,7 @@ class router(size:Int) extends Module{
   io.router_out_E.dout := XBar_S.io.xbar_data_out_E
   io.router_out_W.dout := XBar_S.io.xbar_data_out_W
   io.router_out_L.dout := XBar_S.io.xbar_data_out_L
-  
+
   val XBar_W = Module(new XBar(size))
   XBar_W.io.xbar_sele := HPU_W.io.sele
   XBar_W.io.xbar_data_in := HPU_W.io.data_out
@@ -56,7 +62,7 @@ class router(size:Int) extends Module{
   io.router_out_E.dout := XBar_W.io.xbar_data_out_E
   io.router_out_W.dout := XBar_W.io.xbar_data_out_W
   io.router_out_L.dout := XBar_W.io.xbar_data_out_L
-  
+
   val XBar_E = Module(new XBar(size))
   XBar_E.io.xbar_sele := HPU_E.io.sele
   XBar_E.io.xbar_data_in := HPU_E.io.data_out
@@ -65,7 +71,7 @@ class router(size:Int) extends Module{
   io.router_out_E.dout := XBar_E.io.xbar_data_out_E
   io.router_out_W.dout := XBar_E.io.xbar_data_out_W
   io.router_out_L.dout := XBar_E.io.xbar_data_out_L
-  
+
   val XBar_L = Module(new XBar(size))
   XBar_L.io.xbar_sele := HPU_L.io.sele
   XBar_L.io.xbar_data_in := HPU_L.io.data_out
@@ -75,8 +81,55 @@ class router(size:Int) extends Module{
   io.router_out_W.dout := XBar_L.io.xbar_data_out_W
   io.router_out_L.dout := XBar_L.io.xbar_data_out_L
 
+  io.router_in_L.full := ( stateReg === full)
+  io.router_in_N.full := ( stateReg === full)
+  io.router_in_E.full := ( stateReg === full)
+  io.router_in_S.full := ( stateReg === full)
+  io.router_in_W.full := ( stateReg === full)
+  io.router_out_L.empty := ( stateReg === empty)
+  io.router_out_N.empty := ( stateReg === empty)
+  io.router_out_E.empty := ( stateReg === empty)
+  io.router_out_S.empty := ( stateReg === empty)
+  io.router_out_W.empty := ( stateReg === empty)
 
-  io.router_in_N.full := true.B
+
+  when( stateReg === empty) {
+    when(io.router_in_L.write) {
+      stateReg := full
+      dataReg_L := io.router_in_L.din
+    }.elsewhen(io.router_in_N.write){
+      stateReg := full
+      dataReg_N := io.router_in_N.din
+    }.elsewhen(io.router_in_E.write){
+      stateReg := full
+      dataReg_E := io.router_in_E.din
+    }.elsewhen(io.router_in_S.write){
+      stateReg := full
+      dataReg_S := io.router_in_S.din
+    }.elsewhen(io.router_in_W.write){
+      stateReg := full
+      dataReg_W := io.router_in_W.din
+    }
+  }. elsewhen ( stateReg === full) {
+    when(io.router_out_L.read) {
+      stateReg := empty
+      dataReg_L := 0.U // just to better see empty slots in the waveform
+    }.elsewhen(io.router_out_N.read){
+      stateReg := empty
+      dataReg_N := 0.U
+    }.elsewhen(io.router_out_E.read){
+      stateReg := empty
+      dataReg_E := 0.U
+    }.elsewhen(io.router_out_S.read){
+      stateReg := empty
+      dataReg_S := 0.U
+    }.elsewhen(io.router_out_W.read){
+      stateReg := empty
+      dataReg_W := 0.U
+    }
+  }. otherwise {
+    // There should not be an otherwise state
+  }
 }
 
 class HPU(size : Int) extends Module{
@@ -91,68 +144,63 @@ class HPU(size : Int) extends Module{
   val dest = RegInit(0.U(4.W))
   val data_in = RegInit(0.U(size.W))
   data_in := io.data_in
-
+  dest := routeReg(3,0) //???
+  val itmiate = WireInit(0.U(4.W))
+  io.sele := itmiate
   routeReg := data_in(15,0)
   when(data_in(33) === 0.U){
     data_after_mux := data_in
   }.otherwise{
-    dest := routeReg(3,0) //???
-    io.sele := dest
+
+    itmiate := dest
     routeReg := routeReg>>4.U
     data_after_mux := Cat(data_in(size-1,16),routeReg)
   }
 }
 
 class XBar(size : Int) extends Module{
-    val io = IO(new Bundle{
-            val xbar_sele = Input(UInt(4.W))
-            val xbar_data_in = Input(UInt(size.W))
-            val xbar_data_out_N = Output(UInt(size.W))
-            val xbar_data_out_S = Output(UInt(size.W))
-            val xbar_data_out_E = Output(UInt(size.W))
-            val xbar_data_out_W = Output(UInt(size.W))
-            val xbar_data_out_L = Output(UInt(size.W))
+  val io = IO(new Bundle{
+    val xbar_sele = Input(UInt(4.W))
+    val xbar_data_in = Input(UInt(size.W))
+    val xbar_data_out_N = Output(UInt(size.W))
+    val xbar_data_out_S = Output(UInt(size.W))
+    val xbar_data_out_E = Output(UInt(size.W))
+    val xbar_data_out_W = Output(UInt(size.W))
+    val xbar_data_out_L = Output(UInt(size.W))
 
-            })
-    val seleReg = RegInit(0.U(4.W))
-        val dataReg = RegInit(0.U(size.W))
-        dataReg := io.xbar_data_in
-        //seleReg := io.xbar_sele
-        //    when(seleReg === "b0001".U){
-        //        io.xbar_data_out_N :=  dataReg
-        //    }.elsewhen(seleReg === "b0010".U){
-        //        io.xbar_data_out_S :=  dataReg
-        //    }.elsewhen(seleReg === "b0100".U){
-        //        io.xbar_data_out_W :=  dataReg
-        //    }.elsewhen(seleReg === "b1000".U){
-        //        io.xbar_data_out_E :=  dataReg
-        //    }.elsewhen(seleReg === "b0000".U){
-        //        io.xbar_data_out_L :=  dataReg
-        //    }
+  })
+  val seleReg = RegInit(0.U(4.W))
+  val dataReg = RegInit(0.U(size.W))
+  val xbar_data_out_L = RegInit(0.U(size.W))
+  val xbar_data_out_N = RegInit(0.U(size.W))
+  val xbar_data_out_E = RegInit(0.U(size.W))
+  val xbar_data_out_S = RegInit(0.U(size.W))
+  val xbar_data_out_W = RegInit(0.U(size.W))
+  io.xbar_data_out_E := xbar_data_out_E
+  io.xbar_data_out_S := xbar_data_out_S
+  io.xbar_data_out_W := xbar_data_out_W
+  io.xbar_data_out_N := xbar_data_out_N
+  io.xbar_data_out_L := xbar_data_out_L
 
-        switch(seleReg){
-            is("b0001".U) {
-                io.xbar_data_out_N :=  dataReg
-            }
-            is("b0010".U) {
-                io.xbar_data_out_S :=  dataReg
-            }
-            is("b0100".U) {
-                io.xbar_data_out_W :=  dataReg
-            }
-            is("b1000".U) {
-                io.xbar_data_out_E :=  dataReg
-            }
-            is("b0000".U) {
-                io.xbar_data_out_L :=  dataReg
-            }
-        }
-
+  dataReg := io.xbar_data_in
+  seleReg := io.xbar_sele
+      when(seleReg === "b0001".U){
+          xbar_data_out_N :=  dataReg
+      }.elsewhen(seleReg === "b0010".U){
+          xbar_data_out_S :=  dataReg
+      }.elsewhen(seleReg === "b0100".U){
+          xbar_data_out_W :=  dataReg
+      }.elsewhen(seleReg === "b1000".U){
+          xbar_data_out_E :=  dataReg
+      }.elsewhen(seleReg === "b0000".U){
+          xbar_data_out_L :=  dataReg
+      }
 
 }
 
 class RouterTest(dut : router) extends PeekPokeTester(dut) {
-  poke(dut.io.router_in_L.din, 0x01)
+  poke(dut.io.router_in_L.din, 0x0001)
+  poke(dut.io.router_in_L.write,true.B)
   //poke(dut.io.txIn.din, 1)
   //step(1)
   //println(peek(dut.io.txOut.dout).toString())
@@ -164,3 +212,46 @@ object RouterTest extends App {
     m => new RouterTest(m)
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//package RouterTest
+//import router._
+//import chisel3._
+//import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
+//
+//class RouterTest(dut:router) extends PeekPokeTester (dut){
+//  poke(dut.io.router_in_N.write, true.B)
+//  poke(dut.io.router_in_N.din, 0x000abc1)
+//  step(1)
+//  println(peek(dut.io.router_out_N.dout).toString())
+//}
+//
+//object RouterTest extends App {
+//  chisel3.iotesters.Driver(() => new router(size = 35)) {
+//    m => new RouterTest(m)
+//  }
+//}
