@@ -56,12 +56,18 @@ class router(size:Int) extends Module{
 
 
   //--------------Cross Bar--------------------
-  val idle :: in :: parsing :: out :: Nil = Enum(4)
+  val idle :: parsing :: out :: Nil = Enum(4)
   val stateReg = RegInit(idle)
-  val in = Input(Bool())
+  val write = Input(Bool())
   val xBar_in = RegInit(0.U(size.W))
+  
+  write := io.router_in_E.write | io.router_in_S | 
+  io.router_in_W | io.router_in_N | io.router_in_L
 
-  when( stateReg === idle ) {
+  when( stateReg === idle ){
+    when(write)
+        stateReg := in
+  }.elsewhen( stateReg === in ) {
       when(io.router_in_E.write) {
         xBar_in := io.router_in_E.din
       }.elsewhen(io.router_in_S.write) {
@@ -75,7 +81,7 @@ class router(size:Int) extends Module{
       }.otherwise {
         //do nothing
       }
-        stateReg := in
+        stateReg := parsing
   }.elsewhen (stateReg === parsing){
         when(xBar_in(33) === 0.U){
         data_after_mux := xBar_in
@@ -87,19 +93,19 @@ class router(size:Int) extends Module{
         stateReg := out
   }.elsewhen (stateReg === out) {
       when(dest === "b0001".U){ //East Port
-          io.router_out_E.read := true.B
+          io.router_out_E.empty := false.B
           io.router_out_E.dout := data_after_mux
       }.elsewhen(dest === "b0010".U){ //South Port
-          io.router_out_S.read := true.B
+          io.router_out_S.empty := false.B
           io.router_out_S.dout := data_after_mux
       }.elsewhen(dest === "b0100".U){ // West Port
-          io.router_out_W.read := true.B
+          io.router_out_W.empty := false.B
           io.router_out_W.dout := data_after_mux
       }.elsewhen(dest === "b1000".U){ // North Port
-          io.router_out_N.read := true.B
+          io.router_out_N.empty := false.B
           io.router_out_N.dout := data_after_mux
       }.elsewhen(dest === "b0000".U){ // Local Port
-          io.router_out_L.read := true.B
+          io.router_out_L.empty := false.B
           io.router_out_L.dout := data_after_mux
       }.otherwise{
           // do nothing
