@@ -32,37 +32,33 @@ class router(size:Int) extends Module{
   val routeReg = RegInit(0.U(16.W))
   val dest = RegInit(0.U(4.W))
 
-  routeReg := data_in(15,0)
-  when(data_in(33) === 0.U){
-    data_after_mux := data_in
-  }.otherwise{
-    dest := routeReg(3,0) //???
-    routeReg := routeReg>>4.U
-    data_after_mux := Cat(data_in(size-1,16),routeReg)
-  }
-  //--------------Cross Bar--------------------
-  //--------------Output-----------------------
-  when(dest === "b0001".U){ //East Port
-    io.router_out_E.dout := data_after_mux
-  }.elsewhen(dest === "b0010".U){ //South Port
-    io.router_out_S.dout := data_after_mux
-  }.elsewhen(dest === "b0100".U){ // West Port
-    io.router_out_W.dout := data_after_mux
-  }.elsewhen(dest === "b1000".U){ // North Port
-    io.router_out_N.dout := data_after_mux
-  }.otherwise{
+//  routeReg := data_in(15,0)
+//  when(data_in(33) === 0.U){
+//    data_after_mux := data_in
+//  }.otherwise{
+//    dest := routeReg(3,0) //???
+//    routeReg := routeReg>>4.U
+//    data_after_mux := Cat(data_in(size-1,16),routeReg)
+//  }
+//  when(dest === "b0001".U){ //East Port
+//    io.router_out_E.dout := data_after_mux
+//  }.elsewhen(dest === "b0010".U){ //South Port
+//    io.router_out_S.dout := data_after_mux
+//  }.elsewhen(dest === "b0100".U){ // West Port
+//    io.router_out_W.dout := data_after_mux
+//  }.elsewhen(dest === "b1000".U){ // North Port
+//    io.router_out_N.dout := data_after_mux
+//  }.otherwise{
     // do nothing
-  }
+//  }
     
-  io.router_in_N.full := true.B
-  
-  //--------------Input-----------------------
+//  io.router_in_N.full := true.B
+
+
+  //--------------Cross Bar--------------------
   val idle :: in :: parsing :: out :: Nil = Enum(4)
   val stateReg = RegInit(idle)
   val in = Input(Bool())
-  in := io.router_in_E.write | io.router_in_S
-   | io.router_in_W.write | io.router_in_N.write
-
   val xBar_in = RegInit(0.U(size.W))
 
   when( stateReg === idle ) {
@@ -74,6 +70,10 @@ class router(size:Int) extends Module{
         xBar_in := io.router_in_W.din
       }.elsewhen(io.router_in_N.write) {
         xBar_in := io.router_in_N.din
+      }.elsewhen(io.router_in_L.write) {
+        xBar_in := io.router_in_L.din
+      }.otherwise {
+        //do nothing
       }
         stateReg := in
   }.elsewhen (stateReg === parsing){
