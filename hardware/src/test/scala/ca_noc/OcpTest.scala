@@ -24,7 +24,7 @@ class OcpTest(dut : OcpInterface) extends PeekPokeTester(dut) {
 }
 
 object OcpTest extends App {
-    chisel3.iotesters.Driver(() => new OcpInterface()) {
+    chisel3.iotesters.Driver(() => new OcpInterface(16, 32)) {
         m => new OcpTest(m)
 
     }
