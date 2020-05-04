@@ -4,19 +4,19 @@ import NetworkInterface.NetworkInterface
 import router.router
 import RX._
 import TX.TX
-import ocp.OcpInterface
+import OcpInterface._
 
 class noc(depth:Int,width:Int,size:Int) extends Module {
   val io = IO(new Bundle {
-    val ocpIO_CORE1 = new ocp.OcpInterface()
-    val ocpIO_CORE2 = new ocp.OcpInterface()
-    val ocpIO_CORE3 = new ocp.OcpInterface()
-    val ocpIO_CORE4 = new ocp.OcpInterface()
-    val ocpIO_CORE5 = new ocp.OcpInterface()
-    val ocpIO_CORE6 = new ocp.OcpInterface()
-    val ocpIO_CORE7 = new ocp.OcpInterface()
-    val ocpIO_CORE8 = new ocp.OcpInterface()
-    val ocpIO_CORE9 = new ocp.OcpInterface()
+    val ocpIO_CORE1 = new OcpInterface()
+    val ocpIO_CORE2 = new OcpInterface()
+    val ocpIO_CORE3 = new OcpInterface()
+    val ocpIO_CORE4 = new OcpInterface()
+    val ocpIO_CORE5 = new OcpInterface()
+    val ocpIO_CORE6 = new OcpInterface()
+    val ocpIO_CORE7 = new OcpInterface()
+    val ocpIO_CORE8 = new OcpInterface()
+    val ocpIO_CORE9 = new OcpInterface()
   })
 
   val NI_CORE1 = Module(new NetworkInterface(depth, size))
