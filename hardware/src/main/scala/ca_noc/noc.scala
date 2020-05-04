@@ -6,17 +6,17 @@ import RX._
 import TX.TX
 import OcpInterface._
 
-class noc(depth:Int,width:Int,size:Int) extends Module {
+class noc(depth:Int,size:Int) extends Module {
   val io = IO(new Bundle {
-    val ocpIO_CORE1 = new OcpInterface()
-    val ocpIO_CORE2 = new OcpInterface()
-    val ocpIO_CORE3 = new OcpInterface()
-    val ocpIO_CORE4 = new OcpInterface()
-    val ocpIO_CORE5 = new OcpInterface()
-    val ocpIO_CORE6 = new OcpInterface()
-    val ocpIO_CORE7 = new OcpInterface()
-    val ocpIO_CORE8 = new OcpInterface()
-    val ocpIO_CORE9 = new OcpInterface()
+    val ocpIO_CORE1 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE2 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE3 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE4 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE5 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE6 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE7 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE8 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+    val ocpIO_CORE9 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
   })
 
   val NI_CORE1 = Module(new NetworkInterface(depth, size))
@@ -491,4 +491,8 @@ class noc(depth:Int,width:Int,size:Int) extends Module {
   Router_Core9.io.router_in_W.din := Router_Core8.io.router_out_E.dout
   Router_Core9.io.router_in_W.write := ~Router_Core8.io.router_out_E.empty
   Router_Core8.io.router_out_E.read := ~Router_Core9.io.router_in_W.full
+}
+
+object noc extends App {
+  chisel3.Driver.execute(Array[ String ]() , () => new noc (depth = 3,size = 35))
 }
