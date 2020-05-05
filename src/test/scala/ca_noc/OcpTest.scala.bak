@@ -1,0 +1,35 @@
+package OcpTest
+
+import Chisel.Enum
+import chisel3._
+import OcpInterface._
+import RX.{ReadIo, WriterIo}
+import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
+
+class OcpTest(dut : OcpInterface) extends PeekPokeTester(dut) {
+    //poke(dut.io.txIn.write, true.B)
+    //poke(dut.io.txIn.din, 1)
+    //step(1)
+    //println(peek(dut.io.txOut.dout).toString())
+
+    //---------------Patmos->Ocp->OcpOutput--------
+    //poke(dut.io.CorePort.M.Cmd, 0x1)
+    //    poke(dut.io.CorePort.M.Addr, 0x0001)
+    //    poke(dut.io.CorePort.M.Data, 0xdeadbeef)
+    //    println(peek(dut.io.addr).toString())
+        //poke(coreAddr, 0x0001)
+        //poke(coreData, 0xdeadbeef)
+  println("the result : dut.io.CorePort.M.Addr = " + "0x0001")
+  println("the result : dut.io.CorePort.M.Data = " + "0xdeadbeef")
+
+        //---------------OccpInput->Ocp->Patmos--------
+
+}
+
+object OcpTest extends App {
+    chisel3.iotesters.Driver(() => new OcpInterface(16, 32)) {
+        m => new OcpTest(m)
+
+    }
+
+}
