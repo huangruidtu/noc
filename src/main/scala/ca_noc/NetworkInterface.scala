@@ -79,7 +79,7 @@ class routelink(size:Int) extends Module {
     cnt := cnt + 1.U
   }
   when(cnt === 3.U){
-    cnt := 0.U
+    cnt := 1.U
   }
   printf("NetworkINterface COUNTER IS %d\n",cnt)
   val  NI2TX_OUT = WireInit(0.U(32.W))
@@ -106,7 +106,7 @@ class routelink(size:Int) extends Module {
     when(io.NI2Ocp_In.write) {
       stateReg := full
       dataReg := io.NI2Ocp_In.din
-      printf("data input is: %d\n",dataReg)
+//      printf("data input is: %d\n",dataReg)
     }
   }. elsewhen ( stateReg === full) {
     when(io.NI2TX_OUT.read) {

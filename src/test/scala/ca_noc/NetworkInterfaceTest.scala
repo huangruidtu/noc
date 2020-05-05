@@ -5,7 +5,7 @@ import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
 
 class NetworkInterfaceTestTrans(dut:NetworkInterface) extends PeekPokeTester (dut){
   //***************    test path OCP -> NI -> ROUTER **************
-  //---------HEADER 1
+  //----------------  HEADER 1  ----------------------
 
   poke(dut.io.NI2Ocp_In.write,true.B)
   poke(dut.io.NI2Ocp_In.din,value = 0x1111)
@@ -14,39 +14,33 @@ class NetworkInterfaceTestTrans(dut:NetworkInterface) extends PeekPokeTester (du
   poke(dut.io.NI2Ocp_In.write, false.B)
   poke(dut.io.NI2Router_Out.read,true.B)
   step(3)
-  expect(dut.io.NI2Router_Out.dout,expected = 0xabc1)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x66bc10001L)
   expect(dut.io.NI2Router_Out.empty,true.B)
   println(peek(dut.io.NI2Router_Out.dout).toString())
 
-//  //  while(peek(dut.io.txOut.empty) != 1){
-//  //    step(1)
-//  //  }
-//  //---------PAYLOAD 2
-//  poke(dut.io.NI2Ocp_In.write, true.B)
-//  poke(dut.io.NI2Ocp_In.din, value = 0xbbc2)
-//  step(1)
-//  poke(dut.io.NI2Ocp_In.write, false.B)
-//  step(2)
-//  poke(dut.io.NI2Router_Out.read,true.B)
-//
-//  expect(dut.io.NI2Router_Out.dout,expected = 0xbbc2)
-//  expect(dut.io.NI2Router_Out.empty,true.B)
-//  println(peek(dut.io.NI2Router_Out.dout).toString())
-//  //
-//  //  while(peek(dut.io.txOut.empty) != 1){
-//  //    step(1)
-//  //  }
-//  //-----------------PAYLOAD 3
-//  poke(dut.io.NI2Ocp_In.write, true.B)
-//  poke(dut.io.NI2Ocp_In.din, value = 0xfda3)
-//  step(1)
-//  poke(dut.io.NI2Ocp_In.write, false.B)
-//  step(2)
-//  poke(dut.io.NI2Router_Out.read,true.B)
-//
-//  expect(dut.io.NI2Router_Out.dout,expected = 0xfda3)
-//  expect(dut.io.NI2Router_Out.empty,true.B)
-//  println(peek(dut.io.NI2Router_Out.dout).toString())
+  //---------------  PAYLOAD 1 ------------------------
+  poke(dut.io.NI2Ocp_In.write,true.B)
+  poke(dut.io.NI2Ocp_In.din,value = 0x1111)
+  poke(dut.io.addr,value = 0x6bc1)
+  step(1)
+  poke(dut.io.NI2Ocp_In.write, false.B)
+  poke(dut.io.NI2Router_Out.read,true.B)
+  step(3)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x400001111L)
+  expect(dut.io.NI2Router_Out.empty,true.B)
+  println(peek(dut.io.NI2Router_Out.dout).toString())
+
+  //---------------  PAYLOAD 2 ------------------------
+  poke(dut.io.NI2Ocp_In.write,true.B)
+  poke(dut.io.NI2Ocp_In.din,value = 0x1112)
+  poke(dut.io.addr,value = 0x6bc1)
+  step(1)
+  poke(dut.io.NI2Ocp_In.write, false.B)
+  poke(dut.io.NI2Router_Out.read,true.B)
+  step(3)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x500001112L)
+  expect(dut.io.NI2Router_Out.empty,true.B)
+  println(peek(dut.io.NI2Router_Out.dout).toString())
 
 }
 
@@ -123,7 +117,7 @@ class RoutelinkTest(dut:routelink) extends PeekPokeTester(dut){
   poke(dut.io.addr,value = 0x6bc1)
   step(1)
   poke(dut.io.NI2TX_OUT.read,value = true)
-  expect(dut.io.NI2TX_OUT.dout,expected = 0x6bc10001)
+  expect(dut.io.NI2TX_OUT.dout,expected = 0x6bc10002)
   println(peek(dut.io.NI2TX_OUT.dout).toString())
 }
 
