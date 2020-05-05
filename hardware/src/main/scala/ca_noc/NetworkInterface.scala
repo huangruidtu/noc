@@ -1,4 +1,5 @@
 package NetworkInterface
+import Chisel.Enum
 import chisel3._
 import chisel3.util.{Cat, is, switch}
 import RX._
@@ -6,41 +7,25 @@ import TX._
 
 class NetworkInterface(depth:Int,size:Int) extends Module{
   val io = IO(new Bundle{
-    val NI2Ocp_In = new RX.WriterIo(size)
-    val NI2Ocp_Out = new RX.ReadIo((size+3))
-    val NI2Router_Out = new RX.ReadIo(size+3)
-    val NI2Router_In = new RX.WriterIo(size)
+    val NI2Ocp_In = new WriterIo(size-3)
+    val NI2Ocp_Out = new ReadIo((size-3))
+    val NI2Router_Out = new ReadIo(size)
+    val NI2Router_In = new WriterIo(size)
     val addr = Input(UInt(16.W))
   })
   val Tx = Module(new TX(depth))
   val Rx = Module(new RX(depth))
-  val route = WireInit(0.U(16.W))
-  val Routetable = Module(new route)
-  val header = WireInit(0.U(32.W))
-
-  header := Cat(io.addr,route)
-
-  val cnt = RegInit(0.U)
-  when(io.NI2Ocp_In.write){
-    when(cnt =/= 3.U){
-      cnt := cnt + 1.U
-    }.otherwise{cnt := 0.U}
-  }
-
-  when(cnt === 1.U){
-    Routetable.io.en := true.B
-    Tx.io.txIn.din := header
-  }.otherwise{
-    Routetable.io.en := false.B
-    Tx.io.txIn.din := io.NI2Ocp_In.din
-  }
-
-  io.NI2Ocp_In <> Tx.io.txIn
+  val routelink = Module(new routelink(size))
+  printf("Data in to Ni is %x\n",io.NI2Ocp_In.din)
+  io.NI2Ocp_In <> routelink.io.NI2Ocp_In
+  routelink.io.addr := io.addr
+  Tx.io.txIn.din := routelink.io.NI2TX_OUT.dout
+  routelink.io.NI2TX_OUT.read := ~Tx.io.txIn.full
+  Tx.io.txIn.write := ~routelink.io.NI2TX_OUT.empty
   io.NI2Router_Out <> Tx.io.txOut
   io.NI2Router_In <> Rx.io.rxIn
   io.NI2Ocp_Out <> Rx.io.rxOut
 
-  route := Routetable.io.route
 }
 
 class route extends Module{
@@ -49,23 +34,86 @@ class route extends Module{
     val en = Input(Bool())
   })
   val route = WireInit(0.U(16.W))
-  val cnt = RegInit(0.U)
-  io.route := route
+  val cnt = RegInit(0.U(4.W))
+
   when(io.en){
     cnt := cnt + 1.U
   }
-  when(cnt === 5.U){
+  when(cnt === 10.U){
     cnt := 0.U
   }
-  when(cnt === 1.U){
+  printf("ROUTE COUNTER IS %d\n",cnt)
+  io.route := route
+  when(cnt === 1.U) {
     route := 0x0001.U
-  }.elsewhen(cnt === 2.U){
+  }.elsewhen(cnt === 4.U) {
     route := 0x0002.U
-  }.elsewhen(cnt === 3.U){
+  }.elsewhen(cnt === 7.U) {
     route := 0x0004.U
-  }.elsewhen(cnt === 4.U){
-    route := 0x0008.U
-  }.elsewhen(cnt === 5.U){
-    route := 0x0011.U
+  }
+  printf("INput enable is %b\n",io.en)
+  printf("route is %x\n",route)
+  printf("route out is %x\n",io.route)
+}
+class routelink(size:Int) extends Module {
+  val io=IO(new Bundle() {
+    val NI2Ocp_In = new RX.WriterIo(size-3)
+    val NI2TX_OUT = new ReadIo(size-3)
+    val addr = Input(UInt(16.W))
+  })
+
+  val route = Module(new route)
+  val route_enable = WireInit(false.B)
+  val route_out = WireInit(0.U(16.W))
+  route.io.en := io.NI2Ocp_In.write
+  route_out := route.io.route
+
+  val addr = WireInit(0.U(16.W))
+  val header = WireInit(0.U(32.W))
+  addr := io.addr
+  header := Cat(addr,route_out)
+  printf("Header is %b\n",header)
+  printf("Header is %x\n",header)
+  val cnt = RegInit(0.U(3.W))
+  when(io.NI2Ocp_In.write){
+    cnt := cnt + 1.U
+  }
+  when(cnt === 3.U){
+    cnt := 0.U
+  }
+  printf("NetworkINterface COUNTER IS %d\n",cnt)
+  val  NI2TX_OUT = WireInit(0.U(32.W))
+  val  NI2Ocp_In = WireInit(0.U(32.W))
+  NI2Ocp_In := io.NI2Ocp_In.din
+  io.NI2TX_OUT.dout := NI2TX_OUT
+  when(cnt === 1.U){
+    //route.io.en := true.B
+    NI2TX_OUT := header
+  }.otherwise{
+    //route.io.en := false.B
+    NI2TX_OUT := NI2Ocp_In
+  }
+  printf("routelink output is %x\n",NI2TX_OUT)
+  //-----------FSM------------------
+  val empty :: full :: Nil = Enum(2)
+  val stateReg = RegInit(empty)
+  val dataReg = RegInit(0.U(32.W))
+
+  io.NI2Ocp_In.full := (stateReg === full)
+  io.NI2TX_OUT.empty := (stateReg === empty)
+  printf("FULL SIGNAL IS %b\n",io.NI2Ocp_In.full)
+  when( stateReg === empty) {
+    when(io.NI2Ocp_In.write) {
+      stateReg := full
+      dataReg := io.NI2Ocp_In.din
+      printf("data input is: %d\n",dataReg)
+    }
+  }. elsewhen ( stateReg === full) {
+    when(io.NI2TX_OUT.read) {
+      stateReg := empty
+      dataReg := 0.U // just to better see empty slots in the waveform
+    }
+  }. otherwise {
+    // There should not be an otherwise state
   }
 }

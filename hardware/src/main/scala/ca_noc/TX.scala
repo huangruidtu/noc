@@ -61,7 +61,7 @@ class TXProcess(depth:Int) extends Module{
     printf("data2mux is %d\n",data2mux)
   merge := Cat(result,data2mux)
   io.txOut.dout := merge
-  printf("merge %b\n",merge)
+  printf("merge %x\n",merge)
   //-----------FSM------------------
   val empty :: full :: Nil = Enum(2)
   val stateReg = RegInit(empty)
