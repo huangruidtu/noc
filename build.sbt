@@ -1,6 +1,10 @@
-name := "Patmos"
+name := "Project"
+
+version := "0.1"
 
 scalaVersion := "2.11.12"
 
-libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.1.7"
-libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.2.2"
+libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "latest.release"
+libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.3.2"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+
