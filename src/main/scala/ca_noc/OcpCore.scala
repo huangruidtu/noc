@@ -19,6 +19,11 @@ class OcpCoreMasterSignals(addrWidth : Int, dataWidth : Int)
     val res = new OcpCoreMasterSignals(addrWidth, dataWidth)
     res.asInstanceOf[this.type]
   }
+  // This does not really clone, but Data.clone doesn't either
+  override def cloneType() = {
+    val res = new OcpCoreMasterSignals(addrWidth, dataWidth)
+    res.asInstanceOf[this.type]
+  }
 }
 
 // Master port
@@ -38,6 +43,11 @@ class OcpCoreSlavePort(addrWidth : Int, dataWidth : Int) extends Bundle() {
     res.asInstanceOf[this.type]
   }
 
+  // This does not really clone, but Data.clone doesn't either
+  override def cloneType() = {
+    val res = new OcpCoreSlavePort(addrWidth, dataWidth)
+    res.asInstanceOf[this.type]
+  }
 }
 
 // Provide a "bus" with a master port and a slave port to simplify plumbing

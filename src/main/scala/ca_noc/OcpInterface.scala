@@ -8,8 +8,6 @@ import ocp._
 
 class OcpInterface(ADDR_WIDTH :Int,DATA_WIDTH : Int) extends Module {
   val io = new Bundle{
-//    val ADDR_WIDTH = 16
-//    val DATA_WIDTH = 32
     val OcpIn = new RX.WriterIo(32)
     val OcpOut = new RX.ReadIo(32)
     val CorePort = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
@@ -20,7 +18,8 @@ class OcpInterface(ADDR_WIDTH :Int,DATA_WIDTH : Int) extends Module {
   val stateReg = RegInit(idle)
   val rdAddrReg = RegInit(0.U(16.W))
   val dataOutReg = RegInit(0.U(32.W))
-  val coreReg = RegInit(io.CorePort.M)
+  //val coreReg = RegInit(io.CorePort.M)
+  val coreReg = Wire(io.CorePort.M)
 
   io.CorePort.S.Data := io.OcpIn.din
   io.CorePort.S.Resp := OcpResp.NULL
