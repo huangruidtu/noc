@@ -15,7 +15,8 @@ class OcpTest(dut : OcpInterface) extends PeekPokeTester(dut) {
     //---------------Patmos->Ocp->OcpOutput--------
     poke(dut.io.CorePort.M.Cmd, 0x1)
         poke(dut.io.CorePort.M.Addr, 0x0001)
-        poke(dut.io.CorePort.M.Data, 0xdeadbeef)
+        poke(dut.io.CorePort.M.Data, 0x0001)
+        step(3)
         println(peek(dut.io.addr).toString())
         println(peek(dut.io.OcpOut.dout).toString())
 

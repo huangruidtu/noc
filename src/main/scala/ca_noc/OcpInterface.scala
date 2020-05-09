@@ -7,34 +7,36 @@ import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
 import ocp._
 
 class OcpInterface(ADDR_WIDTH :Int,DATA_WIDTH : Int) extends Module {
-  val io = new Bundle{
+  val io = IO(new Bundle{
     val OcpIn = new RX.WriterIo(32)
     val OcpOut = new RX.ReadIo(32)
     val CorePort = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
     val addr = Output(UInt(16.W))
-  }
+  })
 
   val idle :: sendAddr :: readData :: writeData :: Nil = Enum(UInt(), 4)
   val stateReg = RegInit(idle)
   val rdAddrReg = RegInit(0.U(16.W))
   val dataOutReg = RegInit(0.U(32.W))
   //val coreReg = RegInit(io.CorePort.M)
-  val coreReg = Wire(io.CorePort.M)
+  val coreReg = RegInit(io.CorePort.M)
 
   io.CorePort.S.Data := io.OcpIn.din
   io.CorePort.S.Resp := OcpResp.NULL
   io.addr := rdAddrReg
   io.OcpOut.dout := dataOutReg
+  io.OcpOut.empty := true.B
+  io.OcpIn.full := false.B
 
   when (stateReg === idle){
     when(coreReg.Cmd === OcpCmd.RD){
       stateReg := sendAddr
       rdAddrReg := coreReg.Addr(15, 0)
-
     }.elsewhen(coreReg.Cmd === OcpCmd.WR){
       stateReg := writeData
       rdAddrReg := coreReg.Addr(15, 0)
       dataOutReg := coreReg.Data
+      io.OcpIn.full := true.B
 
     }.otherwise{
       coreReg := io.CorePort.M
