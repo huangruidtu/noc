@@ -9,12 +9,50 @@ class NetworkInterfaceTestTrans(dut:NetworkInterface) extends PeekPokeTester (du
 
   poke(dut.io.NI2Ocp_In.write,true.B)
   poke(dut.io.NI2Ocp_In.din,value = 0x1111)
+  poke(dut.io.addr,value = 0x0003)
+  step(1)
+  poke(dut.io.NI2Ocp_In.write, false.B)
+  poke(dut.io.NI2Router_Out.read,true.B)
+  step(3)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x600030004L)
+  expect(dut.io.NI2Router_Out.empty,true.B)
+  println(peek(dut.io.NI2Router_Out.dout).toString())
+
+  //---------------  PAYLOAD 1 ------------------------
+  poke(dut.io.NI2Ocp_In.write,true.B)
+  poke(dut.io.NI2Ocp_In.din,value = 0x1111)
   poke(dut.io.addr,value = 0x6bc1)
   step(1)
   poke(dut.io.NI2Ocp_In.write, false.B)
   poke(dut.io.NI2Router_Out.read,true.B)
   step(3)
-  expect(dut.io.NI2Router_Out.dout,expected = 0x66bc10001L)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x400001111L)
+  expect(dut.io.NI2Router_Out.empty,true.B)
+  println(peek(dut.io.NI2Router_Out.dout).toString())
+
+  //---------------  PAYLOAD 2 ------------------------
+  poke(dut.io.NI2Ocp_In.write,true.B)
+  poke(dut.io.NI2Ocp_In.din,value = 0x1112)
+  poke(dut.io.addr,value = 0x6bc1)
+  step(1)
+  poke(dut.io.NI2Ocp_In.write, false.B)
+  poke(dut.io.NI2Router_Out.read,true.B)
+  step(3)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x500001112L)
+  expect(dut.io.NI2Router_Out.empty,true.B)
+  println(peek(dut.io.NI2Router_Out.dout).toString())
+
+  //------------   Second Package -----------------
+  //----------------  HEADER 1  ----------------------
+
+  poke(dut.io.NI2Ocp_In.write,true.B)
+  poke(dut.io.NI2Ocp_In.din,value = 0x1111)
+  poke(dut.io.addr,value = 0x0009)
+  step(1)
+  poke(dut.io.NI2Ocp_In.write, false.B)
+  poke(dut.io.NI2Router_Out.read,true.B)
+  step(3)
+  expect(dut.io.NI2Router_Out.dout,expected = 0x600090014L)
   expect(dut.io.NI2Router_Out.empty,true.B)
   println(peek(dut.io.NI2Router_Out.dout).toString())
 
@@ -45,7 +83,7 @@ class NetworkInterfaceTestTrans(dut:NetworkInterface) extends PeekPokeTester (du
 }
 
 object NetworkInterfaceTestTrans extends App {
-  chisel3.iotesters.Driver(() => new NetworkInterface(depth = 3, size = 35)) {
+  chisel3.iotesters.Driver(() => new NetworkInterface(depth = 3, size = 35, slot = 1)) {
     m => new NetworkInterfaceTestTrans(m)
   }
 }
@@ -67,7 +105,7 @@ class NetworkInterfaceTestReciv(dut:NetworkInterface) extends PeekPokeTester (du
 }
 
 object NetworkInterfaceTestReciv extends App {
-  chisel3.iotesters.Driver(() => new NetworkInterface(depth = 3, size = 35)) {
+  chisel3.iotesters.Driver(() => new NetworkInterface(depth = 3, size = 35,slot = 1)) {
     m => new NetworkInterfaceTestReciv(m)
   }
 }
@@ -80,7 +118,7 @@ class RouteTest(dut:route) extends PeekPokeTester(dut){
 }
 
 object RouteTest extends App {
-  chisel3.iotesters.Driver(() => new route) {
+  chisel3.iotesters.Driver(() => new route(slot = 1)) {
     m => new RouteTest(m)
   }
 }
@@ -122,7 +160,7 @@ class RoutelinkTest(dut:routelink) extends PeekPokeTester(dut){
 }
 
 object RoutelinkTest extends App {
-  chisel3.iotesters.Driver(() => new routelink(size = 35)) {
+  chisel3.iotesters.Driver(() => new routelink(size = 35, slot = 1)) {
     m => new RoutelinkTest(m)
   }
 }
