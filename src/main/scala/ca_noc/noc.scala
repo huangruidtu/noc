@@ -2,32 +2,70 @@ package noc
 import chisel3._
 import NetworkInterface.NetworkInterface
 import router.router
-import RX._
-import TX.TX
 import OcpInterface._
+import ocp.OcpCoreSlavePort
+
+class noc_M extends Bundle{
+  val Cmd  = Input(UInt(3.W))
+  val Addr = Input(UInt(16.W))
+  val Data = Input(UInt(32.W))
+}
+class noc_S extends Bundle{
+  val Resp = Output(UInt(2.W))
+  val Data = Output(UInt(32.W))
+}
 
 class noc(depth:Int,size:Int) extends Module {
   val io = IO(new Bundle {
-    val ocpIO_CORE1 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE2 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE3 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE4 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE5 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE6 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE7 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE8 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-    val ocpIO_CORE9 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+//    val ocpIO_CORE1_IN = new noc_M
+//    val ocpIO_CORE2_IN = new noc_M
+//    val ocpIO_CORE3_IN = new noc_M
+//    val ocpIO_CORE4_IN = new noc_M
+//    val ocpIO_CORE5_IN = new noc_M
+//    val ocpIO_CORE6_IN = new noc_M
+//    val ocpIO_CORE7_IN = new noc_M
+//    val ocpIO_CORE8_IN = new noc_M
+//    val ocpIO_CORE9_IN = new noc_M
+//
+//    val ocpIO_CORE1_OUT = new noc_S
+//    val ocpIO_CORE2_OUT = new noc_S
+//    val ocpIO_CORE3_OUT = new noc_S
+//    val ocpIO_CORE4_OUT = new noc_S
+//    val ocpIO_CORE5_OUT = new noc_S
+//    val ocpIO_CORE6_OUT = new noc_S
+//    val ocpIO_CORE7_OUT = new noc_S
+//    val ocpIO_CORE8_OUT = new noc_S
+//    val ocpIO_CORE9_OUT = new noc_S
+    val CorePort1 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort2 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort3 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort4 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort5 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort6 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort7 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort8 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
+    val CorePort9 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
   })
 
-  val NI_CORE1 = Module(new NetworkInterface(depth, size))
-  val NI_CORE2 = Module(new NetworkInterface(depth, size))
-  val NI_CORE3 = Module(new NetworkInterface(depth, size))
-  val NI_CORE4 = Module(new NetworkInterface(depth, size))
-  val NI_CORE5 = Module(new NetworkInterface(depth, size))
-  val NI_CORE6 = Module(new NetworkInterface(depth, size))
-  val NI_CORE7 = Module(new NetworkInterface(depth, size))
-  val NI_CORE8 = Module(new NetworkInterface(depth, size))
-  val NI_CORE9 = Module(new NetworkInterface(depth, size))
+  val ocpIO_CORE1 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE2 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE3 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE4 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE5 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE6 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE7 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE8 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  val ocpIO_CORE9 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
+  
+  val NI_CORE1 = Module(new NetworkInterface(depth, size, slot = 1))
+  val NI_CORE2 = Module(new NetworkInterface(depth, size, slot = 2))
+  val NI_CORE3 = Module(new NetworkInterface(depth, size, slot = 3))
+  val NI_CORE4 = Module(new NetworkInterface(depth, size, slot = 4))
+  val NI_CORE5 = Module(new NetworkInterface(depth, size, slot = 5))
+  val NI_CORE6 = Module(new NetworkInterface(depth, size, slot = 6))
+  val NI_CORE7 = Module(new NetworkInterface(depth, size, slot = 7))
+  val NI_CORE8 = Module(new NetworkInterface(depth, size, slot = 8))
+  val NI_CORE9 = Module(new NetworkInterface(depth, size, slot = 9))
 
   val Router_Core1 = Module(new router(size))
   val Router_Core2 = Module(new router(size))
@@ -39,19 +77,51 @@ class noc(depth:Int,size:Int) extends Module {
   val Router_Core8 = Module(new router(size))
   val Router_Core9 = Module(new router(size))
 
+  /*
+  *               Noc IO WITH OUTSIDE ENVIRONMENT
+  *
+  * */
+//  io.ocpIO_CORE1_IN <> ocpIO_CORE1.io.CorePort.M
+//  io.ocpIO_CORE2_IN <> ocpIO_CORE2.io.CorePort.M
+//  io.ocpIO_CORE3_IN <> ocpIO_CORE3.io.CorePort.M
+//  io.ocpIO_CORE4_IN <> ocpIO_CORE4.io.CorePort.M
+//  io.ocpIO_CORE5_IN <> ocpIO_CORE5.io.CorePort.M
+//  io.ocpIO_CORE6_IN <> ocpIO_CORE6.io.CorePort.M
+//  io.ocpIO_CORE7_IN <> ocpIO_CORE7.io.CorePort.M
+//  io.ocpIO_CORE8_IN <> ocpIO_CORE8.io.CorePort.M
+//  io.ocpIO_CORE9_IN <> ocpIO_CORE9.io.CorePort.M
+//
+//  io.ocpIO_CORE1_OUT <> ocpIO_CORE1.io.CorePort.S
+//  io.ocpIO_CORE2_OUT <> ocpIO_CORE2.io.CorePort.S
+//  io.ocpIO_CORE3_OUT <> ocpIO_CORE3.io.CorePort.S
+//  io.ocpIO_CORE4_OUT <> ocpIO_CORE4.io.CorePort.S
+//  io.ocpIO_CORE5_OUT <> ocpIO_CORE5.io.CorePort.S
+//  io.ocpIO_CORE6_OUT <> ocpIO_CORE6.io.CorePort.S
+//  io.ocpIO_CORE7_OUT <> ocpIO_CORE7.io.CorePort.S
+//  io.ocpIO_CORE8_OUT <> ocpIO_CORE8.io.CorePort.S
+//  io.ocpIO_CORE9_OUT <> ocpIO_CORE9.io.CorePort.S
+  io.CorePort1 <> ocpIO_CORE1.io.CorePort
+  io.CorePort2 <> ocpIO_CORE2.io.CorePort
+  io.CorePort3 <> ocpIO_CORE3.io.CorePort
+  io.CorePort4 <> ocpIO_CORE4.io.CorePort
+  io.CorePort5 <> ocpIO_CORE5.io.CorePort
+  io.CorePort6 <> ocpIO_CORE6.io.CorePort
+  io.CorePort7 <> ocpIO_CORE7.io.CorePort
+  io.CorePort8 <> ocpIO_CORE8.io.CorePort
+  io.CorePort9 <> ocpIO_CORE9.io.CorePort
   /**
    * -------------Core 1 ------------------ 
    */
   //------------OCP CONNECTION WITH NI
-  NI_CORE1.io.NI2Ocp_In.write := ~io.ocpIO_CORE1.io.OcpOut.empty
-  io.ocpIO_CORE1.io.OcpOut.read := ~NI_CORE1.io.NI2Ocp_In.full
-  NI_CORE1.io.NI2Ocp_In.din := io.ocpIO_CORE1.io.OcpOut.dout
+  NI_CORE1.io.NI2Ocp_In.write := ~ocpIO_CORE1.io.OcpOut.empty
+  ocpIO_CORE1.io.OcpOut.read := ~NI_CORE1.io.NI2Ocp_In.full
+  NI_CORE1.io.NI2Ocp_In.din := ocpIO_CORE1.io.OcpOut.dout
 
-  NI_CORE1.io.NI2Ocp_Out.read := ~io.ocpIO_CORE1.io.OcpIn.full
-  io.ocpIO_CORE1.io.OcpIn.write := ~NI_CORE1.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE1.io.OcpIn.din := NI_CORE1.io.NI2Ocp_Out.dout
+  NI_CORE1.io.NI2Ocp_Out.read := ~ocpIO_CORE1.io.OcpIn.full
+  ocpIO_CORE1.io.OcpIn.write := ~NI_CORE1.io.NI2Ocp_Out.empty
+  ocpIO_CORE1.io.OcpIn.din := NI_CORE1.io.NI2Ocp_Out.dout
   
-  NI_CORE1.io.addr := io.ocpIO_CORE1.io.addr
+  NI_CORE1.io.addr := ocpIO_CORE1.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core1.io.router_in_L.din := NI_CORE1.io.NI2Router_Out.dout
   Router_Core1.io.router_in_L.write := ~NI_CORE1.io.NI2Router_Out.empty
@@ -65,15 +135,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 2 -----------------------------
   * */
-  NI_CORE2.io.NI2Ocp_In.write := ~io.ocpIO_CORE2.io.OcpOut.empty
-  io.ocpIO_CORE2.io.OcpOut.read := ~NI_CORE2.io.NI2Ocp_In.full
-  NI_CORE2.io.NI2Ocp_In.din := io.ocpIO_CORE2.io.OcpOut.dout
+  NI_CORE2.io.NI2Ocp_In.write := ~ocpIO_CORE2.io.OcpOut.empty
+  ocpIO_CORE2.io.OcpOut.read := ~NI_CORE2.io.NI2Ocp_In.full
+  NI_CORE2.io.NI2Ocp_In.din := ocpIO_CORE2.io.OcpOut.dout
 
-  NI_CORE2.io.NI2Ocp_Out.read := ~io.ocpIO_CORE2.io.OcpIn.full
-  io.ocpIO_CORE2.io.OcpIn.write := ~NI_CORE2.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE2.io.OcpIn.din := NI_CORE2.io.NI2Ocp_Out.dout
+  NI_CORE2.io.NI2Ocp_Out.read := ~ocpIO_CORE2.io.OcpIn.full
+  ocpIO_CORE2.io.OcpIn.write := ~NI_CORE2.io.NI2Ocp_Out.empty
+  ocpIO_CORE2.io.OcpIn.din := NI_CORE2.io.NI2Ocp_Out.dout
 
-  NI_CORE2.io.addr := io.ocpIO_CORE2.io.addr
+  NI_CORE2.io.addr := ocpIO_CORE2.io.addr
   //-------------NI CONNECTION WITH ROUTER
   Router_Core2.io.router_in_L.din := NI_CORE2.io.NI2Router_Out.dout
   Router_Core2.io.router_in_L.write := ~NI_CORE2.io.NI2Router_Out.empty
@@ -86,15 +156,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
     * ---------------Core 3 -----------------------------
     * */
-  NI_CORE3.io.NI2Ocp_In.write := ~io.ocpIO_CORE3.io.OcpOut.empty
-  io.ocpIO_CORE3.io.OcpOut.read := ~NI_CORE3.io.NI2Ocp_In.full
-  NI_CORE3.io.NI2Ocp_In.din := io.ocpIO_CORE3.io.OcpOut.dout
+  NI_CORE3.io.NI2Ocp_In.write := ~ocpIO_CORE3.io.OcpOut.empty
+  ocpIO_CORE3.io.OcpOut.read := ~NI_CORE3.io.NI2Ocp_In.full
+  NI_CORE3.io.NI2Ocp_In.din := ocpIO_CORE3.io.OcpOut.dout
 
-  NI_CORE3.io.NI2Ocp_Out.read := ~io.ocpIO_CORE3.io.OcpIn.full
-  io.ocpIO_CORE3.io.OcpIn.write := ~NI_CORE3.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE3.io.OcpIn.din := NI_CORE3.io.NI2Ocp_Out.dout
+  NI_CORE3.io.NI2Ocp_Out.read := ~ocpIO_CORE3.io.OcpIn.full
+  ocpIO_CORE3.io.OcpIn.write := ~NI_CORE3.io.NI2Ocp_Out.empty
+  ocpIO_CORE3.io.OcpIn.din := NI_CORE3.io.NI2Ocp_Out.dout
 
-  NI_CORE3.io.addr := io.ocpIO_CORE3.io.addr
+  NI_CORE3.io.addr := ocpIO_CORE3.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core3.io.router_in_L.din := NI_CORE3.io.NI2Router_Out.dout
   Router_Core3.io.router_in_L.write := ~NI_CORE3.io.NI2Router_Out.empty
@@ -107,15 +177,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 4 -----------------------------
   * */
-  NI_CORE4.io.NI2Ocp_In.write := ~io.ocpIO_CORE4.io.OcpOut.empty
-  io.ocpIO_CORE4.io.OcpOut.read := ~NI_CORE4.io.NI2Ocp_In.full
-  NI_CORE4.io.NI2Ocp_In.din := io.ocpIO_CORE4.io.OcpOut.dout
+  NI_CORE4.io.NI2Ocp_In.write := ~ocpIO_CORE4.io.OcpOut.empty
+  ocpIO_CORE4.io.OcpOut.read := ~NI_CORE4.io.NI2Ocp_In.full
+  NI_CORE4.io.NI2Ocp_In.din := ocpIO_CORE4.io.OcpOut.dout
 
-  NI_CORE4.io.NI2Ocp_Out.read := ~io.ocpIO_CORE4.io.OcpIn.full
-  io.ocpIO_CORE4.io.OcpIn.write := ~NI_CORE4.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE4.io.OcpIn.din := NI_CORE4.io.NI2Ocp_Out.dout
+  NI_CORE4.io.NI2Ocp_Out.read := ~ocpIO_CORE4.io.OcpIn.full
+  ocpIO_CORE4.io.OcpIn.write := ~NI_CORE4.io.NI2Ocp_Out.empty
+  ocpIO_CORE4.io.OcpIn.din := NI_CORE4.io.NI2Ocp_Out.dout
   
-  NI_CORE4.io.addr := io.ocpIO_CORE4.io.addr
+  NI_CORE4.io.addr := ocpIO_CORE4.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core4.io.router_in_L.din := NI_CORE4.io.NI2Router_Out.dout
   Router_Core4.io.router_in_L.write := ~NI_CORE4.io.NI2Router_Out.empty
@@ -128,15 +198,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 5 -----------------------------
   * */
-  NI_CORE5.io.NI2Ocp_In.write := ~io.ocpIO_CORE5.io.OcpOut.empty
-  io.ocpIO_CORE5.io.OcpOut.read := ~NI_CORE5.io.NI2Ocp_In.full
-  NI_CORE5.io.NI2Ocp_In.din := io.ocpIO_CORE5.io.OcpOut.dout
+  NI_CORE5.io.NI2Ocp_In.write := ~ocpIO_CORE5.io.OcpOut.empty
+  ocpIO_CORE5.io.OcpOut.read := ~NI_CORE5.io.NI2Ocp_In.full
+  NI_CORE5.io.NI2Ocp_In.din := ocpIO_CORE5.io.OcpOut.dout
 
-  NI_CORE5.io.NI2Ocp_Out.read := ~io.ocpIO_CORE5.io.OcpIn.full
-  io.ocpIO_CORE5.io.OcpIn.write := ~NI_CORE5.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE5.io.OcpIn.din := NI_CORE5.io.NI2Ocp_Out.dout
+  NI_CORE5.io.NI2Ocp_Out.read := ~ocpIO_CORE5.io.OcpIn.full
+  ocpIO_CORE5.io.OcpIn.write := ~NI_CORE5.io.NI2Ocp_Out.empty
+  ocpIO_CORE5.io.OcpIn.din := NI_CORE5.io.NI2Ocp_Out.dout
 
-  NI_CORE5.io.addr := io.ocpIO_CORE5.io.addr
+  NI_CORE5.io.addr := ocpIO_CORE5.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core5.io.router_in_L.din := NI_CORE5.io.NI2Router_Out.dout
   Router_Core5.io.router_in_L.write := ~NI_CORE5.io.NI2Router_Out.empty
@@ -149,15 +219,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 6 -----------------------------
   * */
-  NI_CORE6.io.NI2Ocp_In.write := ~io.ocpIO_CORE6.io.OcpOut.empty
-  io.ocpIO_CORE6.io.OcpOut.read := ~NI_CORE6.io.NI2Ocp_In.full
-  NI_CORE6.io.NI2Ocp_In.din := io.ocpIO_CORE6.io.OcpOut.dout
+  NI_CORE6.io.NI2Ocp_In.write := ~ocpIO_CORE6.io.OcpOut.empty
+  ocpIO_CORE6.io.OcpOut.read := ~NI_CORE6.io.NI2Ocp_In.full
+  NI_CORE6.io.NI2Ocp_In.din := ocpIO_CORE6.io.OcpOut.dout
 
-  NI_CORE6.io.NI2Ocp_Out.read := ~io.ocpIO_CORE6.io.OcpIn.full
-  io.ocpIO_CORE6.io.OcpIn.write := ~NI_CORE6.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE6.io.OcpIn.din := NI_CORE6.io.NI2Ocp_Out.dout
+  NI_CORE6.io.NI2Ocp_Out.read := ~ocpIO_CORE6.io.OcpIn.full
+  ocpIO_CORE6.io.OcpIn.write := ~NI_CORE6.io.NI2Ocp_Out.empty
+  ocpIO_CORE6.io.OcpIn.din := NI_CORE6.io.NI2Ocp_Out.dout
 
-  NI_CORE6.io.addr := io.ocpIO_CORE6.io.addr
+  NI_CORE6.io.addr := ocpIO_CORE6.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core6.io.router_in_L.din := NI_CORE6.io.NI2Router_Out.dout
   Router_Core6.io.router_in_L.write := ~NI_CORE6.io.NI2Router_Out.empty
@@ -169,15 +239,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 7 -----------------------------
   * */
-  NI_CORE7.io.NI2Ocp_In.write := ~io.ocpIO_CORE7.io.OcpOut.empty
-  io.ocpIO_CORE7.io.OcpOut.read := ~NI_CORE7.io.NI2Ocp_In.full
-  NI_CORE7.io.NI2Ocp_In.din := io.ocpIO_CORE7.io.OcpOut.dout
+  NI_CORE7.io.NI2Ocp_In.write := ~ocpIO_CORE7.io.OcpOut.empty
+  ocpIO_CORE7.io.OcpOut.read := ~NI_CORE7.io.NI2Ocp_In.full
+  NI_CORE7.io.NI2Ocp_In.din := ocpIO_CORE7.io.OcpOut.dout
 
-  NI_CORE7.io.NI2Ocp_Out.read := ~io.ocpIO_CORE7.io.OcpIn.full
-  io.ocpIO_CORE7.io.OcpIn.write := ~NI_CORE7.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE7.io.OcpIn.din := NI_CORE7.io.NI2Ocp_Out.dout
+  NI_CORE7.io.NI2Ocp_Out.read := ~ocpIO_CORE7.io.OcpIn.full
+  ocpIO_CORE7.io.OcpIn.write := ~NI_CORE7.io.NI2Ocp_Out.empty
+  ocpIO_CORE7.io.OcpIn.din := NI_CORE7.io.NI2Ocp_Out.dout
 
-  NI_CORE7.io.addr := io.ocpIO_CORE7.io.addr
+  NI_CORE7.io.addr := ocpIO_CORE7.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   Router_Core7.io.router_in_L.din := NI_CORE7.io.NI2Router_Out.dout
   Router_Core7.io.router_in_L.write := ~NI_CORE7.io.NI2Router_Out.empty
@@ -189,15 +259,15 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 8 -----------------------------
   * */
-  NI_CORE8.io.NI2Ocp_In.write := ~io.ocpIO_CORE8.io.OcpOut.empty
-  io.ocpIO_CORE8.io.OcpOut.read := ~NI_CORE8.io.NI2Ocp_In.full
-  NI_CORE8.io.NI2Ocp_In.din := io.ocpIO_CORE8.io.OcpOut.dout
+  NI_CORE8.io.NI2Ocp_In.write := ~ocpIO_CORE8.io.OcpOut.empty
+  ocpIO_CORE8.io.OcpOut.read := ~NI_CORE8.io.NI2Ocp_In.full
+  NI_CORE8.io.NI2Ocp_In.din := ocpIO_CORE8.io.OcpOut.dout
 
-  NI_CORE8.io.NI2Ocp_Out.read := ~io.ocpIO_CORE8.io.OcpIn.full
-  io.ocpIO_CORE8.io.OcpIn.write := ~NI_CORE8.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE8.io.OcpIn.din := NI_CORE8.io.NI2Ocp_Out.dout
+  NI_CORE8.io.NI2Ocp_Out.read := ~ocpIO_CORE8.io.OcpIn.full
+  ocpIO_CORE8.io.OcpIn.write := ~NI_CORE8.io.NI2Ocp_Out.empty
+  ocpIO_CORE8.io.OcpIn.din := NI_CORE8.io.NI2Ocp_Out.dout
 
-  NI_CORE8.io.addr := io.ocpIO_CORE8.io.addr
+  NI_CORE8.io.addr := ocpIO_CORE8.io.addr
   //-------------NI CONNECTION WITH ROUTER 
 
   Router_Core8.io.router_in_L.din := NI_CORE8.io.NI2Router_Out.dout
@@ -211,24 +281,24 @@ class noc(depth:Int,size:Int) extends Module {
   /*
   * ---------------Core 9 -----------------------------
   * */
-  NI_CORE9.io.NI2Ocp_In.write := ~io.ocpIO_CORE9.io.OcpOut.empty
-  io.ocpIO_CORE9.io.OcpOut.read := ~NI_CORE9.io.NI2Ocp_In.full
-  NI_CORE9.io.NI2Ocp_In.din := io.ocpIO_CORE9.io.OcpOut.dout
+  NI_CORE9.io.NI2Ocp_In.write := ~ocpIO_CORE9.io.OcpOut.empty
+  ocpIO_CORE9.io.OcpOut.read := ~NI_CORE9.io.NI2Ocp_In.full
+  NI_CORE9.io.NI2Ocp_In.din := ocpIO_CORE9.io.OcpOut.dout
 
-  NI_CORE9.io.NI2Ocp_Out.read := ~io.ocpIO_CORE9.io.OcpIn.full
-  io.ocpIO_CORE9.io.OcpIn.write := ~NI_CORE9.io.NI2Ocp_Out.empty
-  io.ocpIO_CORE9.io.OcpIn.din := NI_CORE9.io.NI2Ocp_Out.dout
+  NI_CORE9.io.NI2Ocp_Out.read := ~ocpIO_CORE9.io.OcpIn.full
+  ocpIO_CORE9.io.OcpIn.write := ~NI_CORE9.io.NI2Ocp_Out.empty
+  ocpIO_CORE9.io.OcpIn.din := NI_CORE9.io.NI2Ocp_Out.dout
 
-  NI_CORE9.io.addr := io.ocpIO_CORE9.io.addr
+  NI_CORE9.io.addr := ocpIO_CORE9.io.addr
   //-------------NI CONNECTION WITH ROUTER 
   
   Router_Core9.io.router_in_L.din := NI_CORE9.io.NI2Router_Out.dout
   Router_Core9.io.router_in_L.write := ~NI_CORE9.io.NI2Router_Out.empty
   NI_CORE9.io.NI2Router_Out.read := ~Router_Core9.io.router_in_L.full
 
-  NI_CORE1.io.NI2Router_In.din := Router_Core1.io.router_out_L.dout
-  NI_CORE1.io.NI2Router_In.write := ~Router_Core1.io.router_out_L.empty
-  Router_Core1.io.router_out_L.read := ~NI_CORE1.io.NI2Router_In.full
+  NI_CORE9.io.NI2Router_In.din := Router_Core9.io.router_out_L.dout
+  NI_CORE9.io.NI2Router_In.write := ~Router_Core9.io.router_out_L.empty
+  Router_Core9.io.router_out_L.read := ~NI_CORE9.io.NI2Router_In.full
   
 //-----------------------------------------------------------------------
 //                      Router Connection

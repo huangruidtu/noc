@@ -4,8 +4,9 @@ import chisel3._
 import chisel3.util.{Cat, is, switch}
 import RX._
 import TX._
+import routeTable._
 
-class NetworkInterface(depth:Int,size:Int) extends Module{
+class NetworkInterface(depth:Int,size:Int, slot:Int) extends Module{
   val io = IO(new Bundle{
     val NI2Ocp_In = new WriterIo(size-3)
     val NI2Ocp_Out = new ReadIo((size-3))
@@ -15,7 +16,7 @@ class NetworkInterface(depth:Int,size:Int) extends Module{
   })
   val Tx = Module(new TX(depth))
   val Rx = Module(new RX(depth))
-  val routelink = Module(new routelink(size))
+  val routelink = Module(new routelink(size,slot))
   printf("Data in to Ni is %x\n",io.NI2Ocp_In.din)
   io.NI2Ocp_In <> routelink.io.NI2Ocp_In
   routelink.io.addr := io.addr
@@ -28,41 +29,98 @@ class NetworkInterface(depth:Int,size:Int) extends Module{
 
 }
 
-class route extends Module{
+class route(slot:Int) extends Module{
   val io = IO(new Bundle{
     val route = Output(UInt(16.W))
     val en = Input(Bool())
+    val addr = Input(UInt(16.W))
   })
   val route = WireInit(0.U(16.W))
   val cnt = RegInit(0.U(4.W))
+  val addr = WireInit(0.U(16.W))
+  addr := io.addr
 
   when(io.en){
     cnt := cnt + 1.U
   }
-  when(cnt === 10.U){
+  when(cnt === 3.U){
     cnt := 0.U
   }
   printf("ROUTE COUNTER IS %d\n",cnt)
-  io.route := route
+
   when(cnt === 1.U) {
-    route := 0x0001.U
-  }.elsewhen(cnt === 4.U) {
-    route := 0x0002.U
-  }.elsewhen(cnt === 7.U) {
-    route := 0x0004.U
+    if (slot == 1) {
+      val routeTable = Module(new routeTable1())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 2) {
+      val routeTable = Module(new routeTable2())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 3) {
+      val routeTable = Module(new routeTable3())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 4) {
+      val routeTable = Module(new routeTable4())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 5) {
+      val routeTable = Module(new routeTable5())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 6) {
+      val routeTable = Module(new routeTable6())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 7) {
+      val routeTable = Module(new routeTable7())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 8) {
+      val routeTable = Module(new routeTable8())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
+    else if (slot == 9) {
+      val routeTable = Module(new routeTable9())
+      routeTable.io.addr := addr
+      route := routeTable.io.route
+    }
   }
+
+
+  io.route := route
+//  when(cnt === 1.U) {
+//    route := 0x8822.U
+//    //route := 0x0001.U
+//  }.elsewhen(cnt === 4.U) {
+//    route := 0x0022.U
+//    //route := 0x0002.U
+//  }.elsewhen(cnt === 7.U) {
+//    route := 0x0041.U
+//    //route := 0x0004.U
+//  }
   printf("INput enable is %b\n",io.en)
   printf("route is %x\n",route)
   printf("route out is %x\n",io.route)
 }
-class routelink(size:Int) extends Module {
+
+class routelink(size:Int,slot:Int) extends Module {
   val io=IO(new Bundle() {
     val NI2Ocp_In = new RX.WriterIo(size-3)
     val NI2TX_OUT = new ReadIo(size-3)
     val addr = Input(UInt(16.W))
   })
 
-  val route = Module(new route)
+  val route = Module(new route(slot))
   val route_enable = WireInit(false.B)
   val route_out = WireInit(0.U(16.W))
   route.io.en := io.NI2Ocp_In.write
@@ -71,6 +129,8 @@ class routelink(size:Int) extends Module {
   val addr = WireInit(0.U(16.W))
   val header = WireInit(0.U(32.W))
   addr := io.addr
+  route.io.addr := addr
+
   header := Cat(addr,route_out)
   printf("Header is %b\n",header)
   printf("Header is %x\n",header)
@@ -78,7 +138,7 @@ class routelink(size:Int) extends Module {
   when(io.NI2Ocp_In.write){
     cnt := cnt + 1.U
   }
-  when(cnt === 3.U){
+  when(cnt === 3.U & io.NI2Ocp_In.write === true.B){
     cnt := 1.U
   }
   printf("NetworkINterface COUNTER IS %d\n",cnt)
@@ -94,6 +154,8 @@ class routelink(size:Int) extends Module {
     NI2TX_OUT := NI2Ocp_In
   }
   printf("routelink output is %x\n",NI2TX_OUT)
+
+
   //-----------FSM------------------
   val empty :: full :: Nil = Enum(2)
   val stateReg = RegInit(empty)
