@@ -46,6 +46,8 @@ class noc(depth:Int,size:Int) extends Module {
     val CorePort8 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
     val CorePort9 = new OcpCoreSlavePort(addrWidth = 16,dataWidth = 32)
   })
+printf("Noc CorePort1 input is %x\n",io.CorePort1.M.Data)
+  printf("Noc CorePort1 inAddr is %x\n",io.CorePort1.M.Addr)
 
   val ocpIO_CORE1 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
   val ocpIO_CORE2 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
@@ -56,7 +58,12 @@ class noc(depth:Int,size:Int) extends Module {
   val ocpIO_CORE7 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
   val ocpIO_CORE8 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
   val ocpIO_CORE9 = Module(new OcpInterface(ADDR_WIDTH = 16,DATA_WIDTH = 32))
-  
+
+  printf("NocCorePort1 out data is %x\n",ocpIO_CORE1.io.OcpOut.dout)
+  printf("NocCorePort1 out addr is %x\n",ocpIO_CORE1.io.addr)
+  printf("NocCorePort1 out empty is %b\n",ocpIO_CORE1.io.OcpOut.empty)
+
+
   val NI_CORE1 = Module(new NetworkInterface(depth, size, slot = 1))
   val NI_CORE2 = Module(new NetworkInterface(depth, size, slot = 2))
   val NI_CORE3 = Module(new NetworkInterface(depth, size, slot = 3))
@@ -76,7 +83,12 @@ class noc(depth:Int,size:Int) extends Module {
   val Router_Core7 = Module(new router(size))
   val Router_Core8 = Module(new router(size))
   val Router_Core9 = Module(new router(size))
-
+printf("NI NI2Ocp_In DATA IS %x\n",NI_CORE1.io.NI2Ocp_In.din)
+  printf("Router data in is %x\n", Router_Core1.io.router_in_L.din)
+  printf("ROuter data out is %x\n",Router_Core1.io.router_out_W.dout)
+  printf("NI NI2Router_In DATA IS %x\n",NI_CORE1.io.NI2Router_In.din)
+  printf("NI NI2Ocp_In DATA IS %x\n",NI_CORE1.io.NI2Ocp_Out.dout)
+  // printf("NI TX OUT DATA IS %x\n",NI_CORE1.Tx.io.txOut.dout)
   /*
   *               Noc IO WITH OUTSIDE ENVIRONMENT
   *
@@ -564,5 +576,5 @@ class noc(depth:Int,size:Int) extends Module {
 }
 
 object noc extends App {
-  chisel3.Driver.execute(Array[ String ]() , () => new noc (depth = 3,size = 35))
+  chisel3.Driver.execute(args, () => new noc (depth = 3,size = 35))
 }

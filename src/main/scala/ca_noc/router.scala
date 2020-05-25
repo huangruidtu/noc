@@ -18,8 +18,7 @@ class router(size:Int) extends Module{
     val router_in_L = new WriterIo(size)
     val router_out_L = new ReadIo(size)
   })
-  val empty :: full :: Nil = Enum(2)
-  val stateReg = RegInit(empty)
+
   val dataReg_N = WireInit(0.U(size.W))
   val dataReg_E = WireInit(0.U(size.W))
   val dataReg_S = WireInit(0.U(size.W))
@@ -40,56 +39,65 @@ class router(size:Int) extends Module{
 
   //--------------HPU-------------------------
   val HPU_N = Module(new HPU(size))
-  HPU_N.io.data_in := dataReg_N
+  HPU_N.io.data_in := router_in_N
   val HPU_S = Module(new HPU(size))
-  HPU_S.io.data_in := dataReg_S
+  HPU_S.io.data_in := router_in_S
   val HPU_W = Module(new HPU(size))
-  HPU_W.io.data_in := dataReg_W
+  HPU_W.io.data_in := router_in_W
   val HPU_E = Module(new HPU(size))
-  HPU_E.io.data_in := dataReg_E
+  HPU_E.io.data_in := router_in_E
   val HPU_L = Module(new HPU(size))
-  HPU_L.io.data_in := dataReg_L
+  HPU_L.io.data_in := router_in_L
   //--------------Cross Bar--------------------
   val XBar_N = Module(new XBar(size))
   XBar_N.io.xbar_sele := HPU_N.io.sele
   XBar_N.io.xbar_data_in := HPU_N.io.data_out
 
-  io.router_out_S.dout := XBar_N.io.xbar_data_out_S
-  io.router_out_E.dout := XBar_N.io.xbar_data_out_E
-  io.router_out_W.dout := XBar_N.io.xbar_data_out_W
-  io.router_out_L.dout := XBar_N.io.xbar_data_out_L
+//  io.router_out_S.dout := XBar_N.io.xbar_data_out_S
+//  io.router_out_E.dout := XBar_N.io.xbar_data_out_E
+//  io.router_out_W.dout := XBar_N.io.xbar_data_out_W
+//  io.router_out_L.dout := XBar_N.io.xbar_data_out_L
 
   val XBar_S = Module(new XBar(size))
   XBar_S.io.xbar_sele := HPU_S.io.sele
   XBar_S.io.xbar_data_in := HPU_S.io.data_out
-  io.router_out_N.dout := XBar_S.io.xbar_data_out_N
-  io.router_out_E.dout := XBar_S.io.xbar_data_out_E
-  io.router_out_W.dout := XBar_S.io.xbar_data_out_W
-  io.router_out_L.dout := XBar_S.io.xbar_data_out_L
+//  io.router_out_N.dout := XBar_S.io.xbar_data_out_N
+//  io.router_out_E.dout := XBar_S.io.xbar_data_out_E
+//  io.router_out_W.dout := XBar_S.io.xbar_data_out_W
+//  io.router_out_L.dout := XBar_S.io.xbar_data_out_L
 
   val XBar_W = Module(new XBar(size))
   XBar_W.io.xbar_sele := HPU_W.io.sele
   XBar_W.io.xbar_data_in := HPU_W.io.data_out
-  io.router_out_N.dout := XBar_W.io.xbar_data_out_N
-  io.router_out_S.dout := XBar_W.io.xbar_data_out_S
-  io.router_out_E.dout := XBar_W.io.xbar_data_out_E
-  io.router_out_L.dout := XBar_W.io.xbar_data_out_L
+//  io.router_out_N.dout := XBar_W.io.xbar_data_out_N
+//  io.router_out_S.dout := XBar_W.io.xbar_data_out_S
+//  io.router_out_E.dout := XBar_W.io.xbar_data_out_E
+//  io.router_out_L.dout := XBar_W.io.xbar_data_out_L
 
   val XBar_E = Module(new XBar(size))
   XBar_E.io.xbar_sele := HPU_E.io.sele
   XBar_E.io.xbar_data_in := HPU_E.io.data_out
-  io.router_out_N.dout := XBar_E.io.xbar_data_out_N
-  io.router_out_S.dout := XBar_E.io.xbar_data_out_S
-  io.router_out_W.dout := XBar_E.io.xbar_data_out_W
-  io.router_out_L.dout := XBar_E.io.xbar_data_out_L
+//  io.router_out_N.dout := XBar_E.io.xbar_data_out_N
+//  io.router_out_S.dout := XBar_E.io.xbar_data_out_S
+//  io.router_out_W.dout := XBar_E.io.xbar_data_out_W
+//  io.router_out_L.dout := XBar_E.io.xbar_data_out_L
 
   val XBar_L = Module(new XBar(size))
   XBar_L.io.xbar_sele := HPU_L.io.sele
   XBar_L.io.xbar_data_in := HPU_L.io.data_out
-  io.router_out_N.dout := XBar_L.io.xbar_data_out_N
-  io.router_out_S.dout := XBar_L.io.xbar_data_out_S
-  io.router_out_E.dout := XBar_L.io.xbar_data_out_E
-  io.router_out_W.dout := XBar_L.io.xbar_data_out_W
+//  io.router_out_N.dout := XBar_L.io.xbar_data_out_N
+//  io.router_out_S.dout := XBar_L.io.xbar_data_out_S
+//  io.router_out_E.dout := XBar_L.io.xbar_data_out_E
+//  io.router_out_W.dout := XBar_L.io.xbar_data_out_W
+
+  io.router_out_N.dout := XBar_S.io.xbar_data_out_N | XBar_W.io.xbar_data_out_N | XBar_E.io.xbar_data_out_N | XBar_L.io.xbar_data_out_N
+  io.router_out_E.dout := XBar_N.io.xbar_data_out_E | XBar_S.io.xbar_data_out_E | XBar_W.io.xbar_data_out_E | XBar_L.io.xbar_data_out_E
+  io.router_out_S.dout := XBar_N.io.xbar_data_out_S | XBar_W.io.xbar_data_out_S | XBar_E.io.xbar_data_out_S | XBar_L.io.xbar_data_out_S
+  io.router_out_W.dout := XBar_N.io.xbar_data_out_W | XBar_S.io.xbar_data_out_W | XBar_E.io.xbar_data_out_W | XBar_L.io.xbar_data_out_W
+  io.router_out_L.dout := XBar_N.io.xbar_data_out_L | XBar_S.io.xbar_data_out_L | XBar_E.io.xbar_data_out_L | XBar_W.io.xbar_data_out_L
+
+  val empty :: full :: Nil = Enum(2)
+  val stateReg = RegInit(empty)
 
   io.router_in_L.full := ( stateReg === full)
   io.router_in_N.full := ( stateReg === full)
@@ -141,8 +149,14 @@ class router(size:Int) extends Module{
     // There should not be an otherwise state
   }
 
-  printf("data in to router Local is %x\n",io.router_in_L.din)
-  printf("data in to HPU IS %x\n",HPU_L.io.data_in)
+//  printf("data in to router Local is %x\n",io.router_in_L.din)
+//  printf("route_in_L is %x\n",router_in_L)
+//  printf("dataReg_L is %x\n",dataReg_L)
+//  printf("data in to HPU IS %x\n",HPU_L.io.data_in)
+//  printf("data out from router is %x\n",io.router_out_W.dout)
+  printf("data into router N port is %x\n",io.router_in_N.din)
+  printf("data out from local port is %x\n",io.router_out_L.dout)
+  printf("data out from north local is %x\n",XBar_N.io.xbar_data_out_L)
 }
 
 class HPU(size : Int) extends Module{
@@ -166,11 +180,12 @@ class HPU(size : Int) extends Module{
   memory.io.phit_type := phit_type
   io.sele := memory.io.out_sele
 
-//  printf("data_in is %x\n",io.data_in)
+  printf("data_in is %x\n",io.data_in)
 //  printf("data_in is %x\n",data_in)
 //  printf("Route Reg is %x\n",routeReg)
-//  printf("Dest Reg is %x\n",dest)
-
+  printf("Dest Reg is %x\n",dest)
+  printf("Route Sele is %x\n",io.sele)
+//  printf("Route HPU DEST is %x\n",dest)
   val data_after_mux = WireInit(0.U(size.W))
   val shift_right = WireInit(0.U(16.W))
   io.data_out := data_after_mux
@@ -209,8 +224,9 @@ class XBar(size : Int) extends Module{
   dataReg := io.xbar_data_in
   seleReg := io.xbar_sele
 
-//  printf("Data in is %x\n",io.xbar_data_in)
-//  printf("select signal is %x\n",io.xbar_sele)
+  printf("Xbar data out L is %x\n",xbar_data_out_L)
+//  printf("Xbar Data in is %x\n",io.xbar_data_in)
+//  printf("Xbar select signal is %x\n",io.xbar_sele)
 //  printf("DataReg is %x\n",dataReg)
 //  printf("seleReg is %x\n",seleReg)
 //  printf("xbar_data_out_W is %x\n",xbar_data_out_W)
@@ -240,13 +256,19 @@ class memory_sele() extends Module(){
   sele_inter := io.sele
   phit_type := io.phit_type
 
-  val sele = RegInit(0.U(4.W))
+  val sele_mem = RegInit(0.U(4.W))
+  val sele = WireInit(0.U(4.W))
   val out_sele = WireInit(0.U(4.W))
   out_sele := sele
   io.out_sele := out_sele
   when(phit_type === "b110".U) {
+    sele_mem := sele_inter
     sele := sele_inter
+  }.otherwise{
+    sele := sele_mem
   }
-//  printf("select intermiate signal is %x\n", sele_inter)
-//  printf("select signal in register is %x\n",sele)
+//  printf("MEM select intermiate signal is %x\n", sele_inter)
+//  printf("MEM select signal in register is %x\n",io.sele)
+//  printf("MEM select signal out is %x\n", io.out_sele)
+//  printf("MEM select signal phit type %x\n",io.phit_type)
 }

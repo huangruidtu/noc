@@ -17,7 +17,7 @@ class NetworkInterface(depth:Int,size:Int, slot:Int) extends Module{
   val Tx = Module(new TX(depth))
   val Rx = Module(new RX(depth))
   val routelink = Module(new routelink(size,slot))
-  printf("Data in to Ni is %x\n",io.NI2Ocp_In.din)
+
   io.NI2Ocp_In <> routelink.io.NI2Ocp_In
   routelink.io.addr := io.addr
   Tx.io.txIn.din := routelink.io.NI2TX_OUT.dout
@@ -27,6 +27,13 @@ class NetworkInterface(depth:Int,size:Int, slot:Int) extends Module{
   io.NI2Router_In <> Rx.io.rxIn
   io.NI2Ocp_Out <> Rx.io.rxOut
 
+
+//  printf("Data into Ni is %x\n",io.NI2Ocp_In.din)
+//  printf("Addr into Ni is %x\n",io.addr)
+//  printf("Data out Ni is %x\n",io.NI2Router_Out.dout)
+  printf("Data out NI to ocp is %x\n",io.NI2Ocp_Out.dout)
+  printf("Data into Ni is %x\n", io.NI2Router_In.din)
+  printf("state of RX %x\n", io.NI2Ocp_Out.empty)
 }
 
 class route(slot:Int) extends Module{
@@ -46,7 +53,7 @@ class route(slot:Int) extends Module{
   when(cnt === 3.U){
     cnt := 0.U
   }
-  printf("ROUTE COUNTER IS %d\n",cnt)
+  //printf("ROUTE COUNTER IS %d\n",cnt)
 
   when(cnt === 1.U) {
     if (slot == 1) {
@@ -108,9 +115,9 @@ class route(slot:Int) extends Module{
 //    route := 0x0041.U
 //    //route := 0x0004.U
 //  }
-  printf("INput enable is %b\n",io.en)
-  printf("route is %x\n",route)
-  printf("route out is %x\n",io.route)
+//  printf("INput enable is %b\n",io.en)
+//  printf("route is %x\n",route)
+//  printf("route out is %x\n",io.route)
 }
 
 class routelink(size:Int,slot:Int) extends Module {
@@ -132,8 +139,8 @@ class routelink(size:Int,slot:Int) extends Module {
   route.io.addr := addr
 
   header := Cat(addr,route_out)
-  printf("Header is %b\n",header)
-  printf("Header is %x\n",header)
+  //printf("Header is %b\n",header)
+//  printf("Header is %x\n",header)
   val cnt = RegInit(0.U(3.W))
   when(io.NI2Ocp_In.write){
     cnt := cnt + 1.U
@@ -141,7 +148,7 @@ class routelink(size:Int,slot:Int) extends Module {
   when(cnt === 3.U & io.NI2Ocp_In.write === true.B){
     cnt := 1.U
   }
-  printf("NetworkINterface COUNTER IS %d\n",cnt)
+//  printf("NetworkINterface COUNTER IS %d\n",cnt)
   val  NI2TX_OUT = WireInit(0.U(32.W))
   val  NI2Ocp_In = WireInit(0.U(32.W))
   NI2Ocp_In := io.NI2Ocp_In.din
@@ -153,7 +160,7 @@ class routelink(size:Int,slot:Int) extends Module {
     //route.io.en := false.B
     NI2TX_OUT := NI2Ocp_In
   }
-  printf("routelink output is %x\n",NI2TX_OUT)
+//  printf("routelink output is %x\n",NI2TX_OUT)
 
 
   //-----------FSM------------------
@@ -163,7 +170,7 @@ class routelink(size:Int,slot:Int) extends Module {
 
   io.NI2Ocp_In.full := (stateReg === full)
   io.NI2TX_OUT.empty := (stateReg === empty)
-  printf("FULL SIGNAL IS %b\n",io.NI2Ocp_In.full)
+  //printf("FULL SIGNAL IS %b\n",io.NI2Ocp_In.full)
   when( stateReg === empty) {
     when(io.NI2Ocp_In.write) {
       stateReg := full
