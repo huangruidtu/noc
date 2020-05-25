@@ -5,25 +5,55 @@ import chisel3.util.{Cat, Enum, is, switch}
 import chisel3.iotesters.{PeekPokeTester, chiselMainTest}
 
 class RouterTest(dut : router) extends PeekPokeTester(dut) {
+//  /*********           Header        ***********/
+//  poke(dut.io.router_in_L.din, value = 0x601014482L)
+//  poke(dut.io.router_in_L.write,true.B)
+//  step(2)
+//  poke(dut.io.router_out_S.read,true.B)
+//  expect(dut.io.router_out_S.dout,0x601010448L)
+//  expect(dut.io.router_out_S.empty,true.B)
+//  /*********           PayLoad1        ***********/
+//  poke(dut.io.router_in_L.din, value = 0x40bbcabc1L)
+//  poke(dut.io.router_in_L.write,true.B)
+//  step(2)
+//  poke(dut.io.router_out_S.read,true.B)
+//  expect(dut.io.router_out_S.dout,0x40bbcabc1L)
+//  expect(dut.io.router_out_S.empty,true.B)
+//  expect(dut.io.router_out_S.empty,true.B)
+//  /*********           PayLoad2        ***********/
+//  poke(dut.io.router_in_L.din, value = 0x50bbcabc2L)
+//  poke(dut.io.router_in_L.write,true.B)
+//  step(2)
+//  poke(dut.io.router_out_S.read,true.B)
+//  expect(dut.io.router_out_S.dout,0x50bbcabc2L)
+//  expect(dut.io.router_out_S.empty,true.B)
   /*********           Header        ***********/
-  poke(dut.io.router_in_L.din, value = 0x601014482L)
-  poke(dut.io.router_in_L.write,true.B)
-  step(2)
-  poke(dut.io.router_out_S.read,true.B)
-  expect(dut.io.router_out_S.dout,0x601010448L)
+  poke(dut.io.router_in_N.din, value = 0x601010004L)
+  poke(dut.io.router_in_E.din, value = 0x000000000L)
+  poke(dut.io.router_in_S.din, value = 0x000000000L)
+  poke(dut.io.router_in_W.din, value = 0x000000000L)
+  poke(dut.io.router_in_L.din, value = 0x000000000L)
 
-  /*********           PayLoad1        ***********/
-  poke(dut.io.router_in_L.din, value = 0x40bbcabc1L)
-  poke(dut.io.router_in_L.write,true.B)
+  poke(dut.io.router_in_N.write,true.B)
   step(2)
-  poke(dut.io.router_out_S.read,true.B)
-  expect(dut.io.router_out_S.dout,0x40bbcabc1L)
-  /*********           PayLoad2        ***********/
-  poke(dut.io.router_in_L.din, value = 0x50bbcabc2L)
-  poke(dut.io.router_in_L.write,true.B)
-  step(2)
-  poke(dut.io.router_out_S.read,true.B)
-  expect(dut.io.router_out_S.dout,0x50bbcabc2L)
+  poke(dut.io.router_out_W.read,true.B)
+  expect(dut.io.router_out_W.dout,0x601010000L)
+  expect(dut.io.router_out_W.empty,true.B)
+//  /*********           PayLoad1        ***********/
+//  poke(dut.io.router_in_L.din, value = 0x40bbcabc1L)
+//  poke(dut.io.router_in_L.write,true.B)
+//  step(2)
+//  poke(dut.io.router_out_S.read,true.B)
+//  expect(dut.io.router_out_S.dout,0x40bbcabc1L)
+//  expect(dut.io.router_out_S.empty,true.B)
+//  expect(dut.io.router_out_S.empty,true.B)
+//  /*********           PayLoad2        ***********/
+//  poke(dut.io.router_in_L.din, value = 0x50bbcabc2L)
+//  poke(dut.io.router_in_L.write,true.B)
+//  step(2)
+//  poke(dut.io.router_out_S.read,true.B)
+//  expect(dut.io.router_out_S.dout,0x50bbcabc2L)
+//  expect(dut.io.router_out_S.empty,true.B)
 
 }
 
